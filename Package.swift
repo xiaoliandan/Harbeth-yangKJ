@@ -27,10 +27,10 @@ import PackageDescription
 let package = Package(
     name: "Harbeth",
     platforms: [
-        .iOS(.v10),
-        .macOS(.v10_13),
-        .tvOS(.v12),
-        .watchOS(.v5)
+        .iOS(.v18),
+        .macOS(.v15),
+        .tvOS(.v18),
+        .watchOS(.v6)
     ],
     products: [
         .library(name: "Harbeth", targets: ["Harbeth"]),
@@ -44,5 +44,5 @@ let package = Package(
             ]
         ),
     ],
-    swiftLanguageVersions: [.v5]
+    swiftLanguageVersions: [.v6]
 )

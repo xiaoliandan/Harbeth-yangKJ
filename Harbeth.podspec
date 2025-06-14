@@ -22,9 +22,9 @@ Pod::Spec.new do |s|
   s.author           = { 'Condy' => 'yangkj310@gmail.com' }
   s.source           = { :git => 'https://github.com/yangKJ/Harbeth.git', :tag => s.version }
   
-  s.swift_version    = '5.0'
-  s.ios.deployment_target = '10.0'
-  s.macos.deployment_target = '10.13'
+  s.swift_version    = '6.0'
+  s.ios.deployment_target = '18.0'
+  s.macos.deployment_target = '15.0'
   s.pod_target_xcconfig = { 'SWIFT_VERSION' => '5.0' }
   
   s.requires_arc = true

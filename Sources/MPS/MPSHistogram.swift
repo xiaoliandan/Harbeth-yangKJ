@@ -10,7 +10,7 @@ import MetalPerformanceShaders
 import simd
 
 /// 直方图均衡化
-public struct MPSHistogram: MPSKernelProtocol, Sendable {
+public actor MPSHistogram: MPSKernelProtocol {
     
     public static let range: ParameterRange<Int, Self> = .init(min: 0, max: 8, value: 2)
     

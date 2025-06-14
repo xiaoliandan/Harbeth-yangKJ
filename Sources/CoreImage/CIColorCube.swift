@@ -11,7 +11,7 @@ import CoreImage
 /// 读取Cube文件的查找滤镜
 public struct CIColorCube: CoreImageProtocol {
     
-    public struct Resource {
+    public struct Resource: Sendable {
         let dimension: Int
         let data: Data
         public init(dimension: Int, data: Data) {

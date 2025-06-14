@@ -42,7 +42,7 @@ public final class Shared: Sendable {
     private init() { }
 }
 
-fileprivate let C7ATSharedContext: UInt8 = 0
+fileprivate static var C7ATSharedContext: UInt8 = 0
 
 extension Shared {
     
