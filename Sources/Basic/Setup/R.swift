@@ -12,6 +12,37 @@ import UIKit
 import AppKit
 #endif
 
+fileprivate actor RCacheActor {
+    static let shared = RCacheActor()
+    private var cacheBundles = [String: Bundle]()
+
+    private init() { } // Private initializer for singleton pattern
+
+    func frameworkBundle(named bundleName: String, forClassInBundle classInBundle: AnyClass, appBundle: Bundle) -> Bundle? {
+        if let bundle = cacheBundles[bundleName] {
+            return bundle
+        }
+
+        let bundleForClass = Bundle(for: classInBundle)
+        let candidates = [
+            Bundle.main.resourceURL,
+            appBundle.resourceURL,
+            bundleForClass.resourceURL,
+            Bundle.main.bundleURL,
+        ]
+
+        for candidate in candidates {
+            let bundlePath = candidate?.appendingPathComponent(bundleName + ".bundle")
+            if let bundle = bundlePath.flatMap(Bundle.init(url:)) {
+                cacheBundles[bundleName] = bundle // Actor state mutation
+                return bundle
+            }
+        }
+        cacheBundles[bundleName] = bundleForClass // Actor state mutation
+        return bundleForClass
+    }
+}
+
 public struct AnySendableTarget: Sendable {}
 
 /// 资源文件读取
@@ -27,11 +58,10 @@ public struct R {
         return Bundle(path: components.joined(separator: "/")) ?? Bundle.main
     }()
     
-    private static let cacheBundlesLock = NSLock()
-    internal static var cacheBundles = [String: Bundle]()
+    // Old cache mechanism removed.
     
     /// Read image resources
-    public static func image(_ named: String, forResource: String = "Harbeth") -> C7Image? {
+    public static func image(_ named: String, forResource: String = "Harbeth") async -> C7Image? {
         let readImageblock = { (bundle: Bundle) -> C7Image? in
             #if os(iOS) || os(tvOS) || os(watchOS)
             return C7Image(named: named, in: bundle, compatibleWith: nil)
@@ -44,15 +74,15 @@ public struct R {
         if let image = readImageblock(Bundle.main) {
             return image
         }
-        guard let bundle = readFrameworkBundle(with: forResource) else {
-            return C7Image.init(named: named)
+        guard let bundle = await readFrameworkBundle(with: forResource) else {
+            return C7Image.init(named: named) // Assuming this fallback is acceptable
         }
         return readImageblock(bundle)
     }
     
     /// Read color resource
     @available(iOS 11.0, macOS 10.13, *)
-    public static func color(_ named: String, forResource: String = "Harbeth") -> C7Color? {
+    public static func color(_ named: String, forResource: String = "Harbeth") async -> C7Color? {
         let readColorblock = { (bundle: Bundle) -> C7Color? in
             #if os(iOS) || os(tvOS) || os(watchOS)
             return C7Color.init(named: named, in: bundle, compatibleWith: nil)
@@ -65,39 +95,14 @@ public struct R {
         if let color = readColorblock(Bundle.main) {
             return color
         }
-        guard let bundle = readFrameworkBundle(with: forResource) else {
-            return C7Color.init(named: named)
+        guard let bundle = await readFrameworkBundle(with: forResource) else {
+            return C7Color.init(named: named) // Assuming this fallback is acceptable
         }
         return readColorblock(bundle)
     }
     
-    public static func readFrameworkBundle(with bundleName: String) -> Bundle? {
-        Self.cacheBundlesLock.lock()
-        defer { Self.cacheBundlesLock.unlock() }
-
-        if let bundle = Self.cacheBundles[bundleName] {
-            return bundle
-        }
-        let bundle__ = Bundle(for: R__.self)
-        let candidates = [
-            // Bundle should be present here when the package is linked into an App.
-            Bundle.main.resourceURL,
-            // Current app's bundle whether it's called from the app or an app extension.
-            R.app.resourceURL,
-            // Bundle should be present here when the package is linked into a framework.
-            bundle__.resourceURL,
-            // For command-line tools.
-            Bundle.main.bundleURL,
-        ]
-        for candidate in candidates {
-            let bundlePath = candidate?.appendingPathComponent(bundleName + ".bundle")
-            if let bundle = bundlePath.flatMap(Bundle.init(url:)) {
-                Self.cacheBundles[bundleName] = bundle
-                return bundle
-            }
-        }
-        Self.cacheBundles[bundleName] = bundle__
-        return bundle__
+    public static func readFrameworkBundle(with bundleName: String) async -> Bundle? {
+        return await RCacheActor.shared.frameworkBundle(named: bundleName, forClassInBundle: R__.self, appBundle: R.app)
     }
 }
 
