@@ -8,13 +8,13 @@
 import Foundation
 import MetalPerformanceShaders
 
-/// 高斯模糊
-public actor MPSGaussianBlur: MPSKernelProtocol {
+// Note: @unchecked Sendable is used because this struct holds non-Sendable MPSImageGaussianBlur. Ensure thread-safe usage.
+public struct MPSGaussianBlur: MPSKernelProtocol, @unchecked Sendable {
     
-    public static let range: ParameterRange<Float, Self> = .init(min: 0, max: 100, value: 10)
+    public static let range: ParameterRange<Float, MPSGaussianBlur> = .init(min: 0, max: 100, value: 10)
     
     /// The radius determines how many pixels are used to create the blur.
-    @Clamping(range.min...range.max) public var radius: Float = range.value {
+    @Clamping(MPSGaussianBlur.range.min...MPSGaussianBlur.range.max) public var radius: Float = MPSGaussianBlur.range.value {
         didSet {
             self.gaussian = MPSImageGaussianBlur(device: Device.device(), sigma: ceil(radius))
         }
@@ -37,7 +37,8 @@ public actor MPSGaussianBlur: MPSKernelProtocol {
         }
     }
     
-    public init(radius: Float = range.value) {
+    public init(radius: Float = MPSGaussianBlur.range.value) {
         self.gaussian = MPSImageGaussianBlur(device: Device.device(), sigma: ceil(radius))
+        self.gaussian.edgeMode = .clamp // Ensure edgeMode is set in init
     }
 }

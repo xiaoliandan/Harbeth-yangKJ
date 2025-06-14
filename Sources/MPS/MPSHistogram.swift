@@ -9,15 +9,16 @@ import Foundation
 import MetalPerformanceShaders
 import simd
 
-/// 直方图均衡化
-public actor MPSHistogram: MPSKernelProtocol {
+// Note: @unchecked Sendable is used because this struct holds non-Sendable MPSImageHistogram/Equalization. Ensure thread-safe usage.
+public struct MPSHistogram: MPSKernelProtocol, @unchecked Sendable {
     
-    public static let range: ParameterRange<Int, Self> = .init(min: 0, max: 8, value: 2)
+    public static let range: ParameterRange<Int, MPSHistogram> = .init(min: 0, max: 8, value: 2)
     
-    @Clamping(range.min...range.max) public var histogramEntries: Int = range.value {
+    @Clamping(MPSHistogram.range.min...MPSHistogram.range.max) public var histogramEntries: Int = MPSHistogram.range.value {
         didSet {
             var histogramInfo = MPSHistogram.createMPSImageHistogramInfo(histogramEntries)
             self.histogram = MPSImageHistogram(device: Device.device(), histogramInfo: &histogramInfo)
+            self.histogram.zeroHistogram = false // Ensure this is set in didSet as well
             self.equalization = MPSImageHistogramEqualization(device: Device.device(), histogramInfo: &histogramInfo)
         }
     }
@@ -44,7 +45,7 @@ public actor MPSHistogram: MPSKernelProtocol {
     private var histogram: MPSImageHistogram
     private var equalization: MPSImageHistogramEqualization
     
-    public init(histogramEntries: Int = range.value) {
+    public init(histogramEntries: Int = MPSHistogram.range.value) {
         var histogramInfo = MPSHistogram.createMPSImageHistogramInfo(histogramEntries)
         self.histogram = MPSImageHistogram(device: Device.device(), histogramInfo: &histogramInfo)
         self.histogram.zeroHistogram = false

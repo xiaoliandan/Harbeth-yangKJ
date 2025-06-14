@@ -12,7 +12,7 @@ import UIKit
 import AppKit
 #endif
 
-internal struct AnySendableTarget: Sendable {}
+public struct AnySendableTarget: Sendable {}
 
 /// 资源文件读取
 public struct R {
@@ -27,7 +27,8 @@ public struct R {
         return Bundle(path: components.joined(separator: "/")) ?? Bundle.main
     }()
     
-    internal static let cacheBundles = [String: Bundle]()
+    private static let cacheBundlesLock = NSLock()
+    internal static var cacheBundles = [String: Bundle]()
     
     /// Read image resources
     public static func image(_ named: String, forResource: String = "Harbeth") -> C7Image? {
@@ -71,7 +72,10 @@ public struct R {
     }
     
     public static func readFrameworkBundle(with bundleName: String) -> Bundle? {
-        if let bundle = cacheBundles[bundleName] {
+        Self.cacheBundlesLock.lock()
+        defer { Self.cacheBundlesLock.unlock() }
+
+        if let bundle = Self.cacheBundles[bundleName] {
             return bundle
         }
         let bundle__ = Bundle(for: R__.self)
@@ -88,11 +92,11 @@ public struct R {
         for candidate in candidates {
             let bundlePath = candidate?.appendingPathComponent(bundleName + ".bundle")
             if let bundle = bundlePath.flatMap(Bundle.init(url:)) {
-                cacheBundles[bundleName] = bundle
+                Self.cacheBundles[bundleName] = bundle
                 return bundle
             }
         }
-        cacheBundles[bundleName] = bundle__
+        Self.cacheBundles[bundleName] = bundle__
         return bundle__
     }
 }

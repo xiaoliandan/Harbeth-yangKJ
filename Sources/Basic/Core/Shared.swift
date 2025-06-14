@@ -42,7 +42,7 @@ public final class Shared: Sendable {
     private init() { }
 }
 
-fileprivate static var C7ATSharedContext: UInt8 = 0
+fileprivate static let C7ATSharedContext: UInt8 = 0
 
 extension Shared {
     
@@ -50,18 +50,18 @@ extension Shared {
     weak var device: Device? {
         get {
             return synchronizedDevice {
-                if let object = objc_getAssociatedObject(self, &C7ATSharedContext) {
+                if let object = objc_getAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATSharedContext))) {
                     return object as? Device
                 } else {
                     let object = Device()
-                    objc_setAssociatedObject(self, &C7ATSharedContext, object, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+                    objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATSharedContext)), object, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
                     return object
                 }
             }
         }
         set {
             synchronizedDevice {
-                objc_setAssociatedObject(self, &C7ATSharedContext, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+                objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATSharedContext)), newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             }
         }
     }
