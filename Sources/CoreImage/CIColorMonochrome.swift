@@ -15,12 +15,10 @@ public struct CIColorMonochrome: CoreImageProtocol, Sendable {
     
     @Clamping(range.min...range.max) public var intensity: Float = range.value
     
-    /// A color to use as the white point.
-    public var color: C7Color = .white {
-        didSet {
-            self.ciColor = CIColor.init(color: color)
-        }
-    }
+    public var redComponent: Float
+    public var greenComponent: Float
+    public var blueComponent: Float
+    public var alphaComponent: Float
     
     public var modifier: Modifier {
         return .coreimage(CIName: "CIColorMonochrome")
@@ -28,14 +26,16 @@ public struct CIColorMonochrome: CoreImageProtocol, Sendable {
     
     public func coreImageApply(filter: CIFilter, input ciImage: CIImage) throws -> CIImage {
         filter.setValue(intensity, forKey: kCIInputIntensityKey)
-        filter.setValue(ciColor, forKey: kCIInputColorKey)
+        let coreImageColor = CIColor(red: CGFloat(self.redComponent), green: CGFloat(self.greenComponent), blue: CGFloat(self.blueComponent), alpha: CGFloat(self.alphaComponent))
+        filter.setValue(coreImageColor, forKey: kCIInputColorKey)
         return ciImage
     }
     
-    private var ciColor: CIColor!
-    
     public init(color: C7Color = .white) {
-        self.color = color
-        self.ciColor = CIColor.init(color: color)
+        let (r, g, b, a) = color.c7.toRGBA()
+        self.redComponent = r
+        self.greenComponent = g
+        self.blueComponent = b
+        self.alphaComponent = a
     }
 }

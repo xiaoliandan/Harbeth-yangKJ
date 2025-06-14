@@ -10,7 +10,7 @@ import MetalKit
 
 public struct C7LookupSplit: C7FilterProtocol, Sendable {
     
-    public enum Orientation {
+    public enum Orientation: Sendable {
         case top, left, center
         case topLeft, bottomLeft
     }

@@ -12,7 +12,7 @@ import UIKit
 import AppKit
 #endif
 
-fileprivate struct AnySendableTarget: Sendable {}
+internal struct AnySendableTarget: Sendable {}
 
 /// 资源文件读取
 public struct R {
@@ -107,7 +107,7 @@ extension R {
     public static let intensityRange = iRange
     
     /// Screen window width.
-    public static var width: CGFloat {
+    @MainActor public static var width: CGFloat {
         #if canImport(UIKit)
         return UIScreen.main.bounds.width
         #elseif os(macOS)
@@ -118,7 +118,7 @@ extension R {
     }
     
     /// Screen window height.
-    public static var height: CGFloat {
+    @MainActor public static var height: CGFloat {
         #if canImport(UIKit)
         return UIScreen.main.bounds.height
         #elseif os(macOS)

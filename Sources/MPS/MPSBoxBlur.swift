@@ -8,7 +8,7 @@
 import Foundation
 import MetalPerformanceShaders
 
-public struct MPSBoxBlur: MPSKernelProtocol, Sendable {
+public actor MPSBoxBlur: MPSKernelProtocol {
     
     public static let range: ParameterRange<Float, Self> = .init(min: 0, max: 100, value: 10)
     
