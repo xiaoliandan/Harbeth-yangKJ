@@ -31,7 +31,11 @@ import Harbeth
     @objc optional func captureOutput(_ collector: C7Collector, texture: MTLTexture)
 }
 
-public class C7Collector: NSObject, Cacheable {
+// Note: @unchecked Sendable is used because C7Collector is a base class for collectors
+// managing potentially non-Sendable resources (AVFoundation, Metal caches) and using
+// delegate patterns. Its subclasses often employ specific dispatch queues or other mechanisms
+// for managing concurrency, and this annotation reflects that trust.
+public class C7Collector: NSObject, Cacheable, @unchecked Sendable {
     
     public var filters: [C7FilterProtocol] = []
     public var videoSettings: [String : Any] = [
