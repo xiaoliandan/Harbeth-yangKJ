@@ -50,7 +50,10 @@ extension C7CollectorVideo {
     
     func setupPlayer(_ player: AVPlayer) {
         if let currentItem = player.currentItem {
-            currentItem.add(videoOutput)
+            let localVideoOutput = self.videoOutput
+            DispatchQueue.main.async {
+                currentItem.add(localVideoOutput)
+            }
         }
     }
     
