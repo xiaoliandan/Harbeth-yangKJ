@@ -49,14 +49,20 @@ extension C7CollectorVideo {
     public func play() {
         player.play() // AVPlayer.play() is thread-safe
         DispatchQueue.main.async { [weak self] in
-            self?.displayLink.isPaused = false
+            guard let strongSelf = self else { return }
+            if let displayLink = strongSelf.displayLink {
+                displayLink.isPaused = false
+            }
         }
     }
     
     public func pause() {
         player.pause() // AVPlayer.pause() is thread-safe
         DispatchQueue.main.async { [weak self] in
-            self?.displayLink.isPaused = true
+            guard let strongSelf = self else { return }
+            if let displayLink = strongSelf.displayLink {
+                displayLink.isPaused = true
+            }
         }
     }
 }

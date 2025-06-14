@@ -16,7 +16,7 @@ import UIKit
 
 extension HarbethWrapper where Base: C7View {
     
-    public func toImage() -> C7Image {
+    @MainActor public func toImage() -> C7Image {
         if let scroll = base as? UIScrollView {
             return UIGraphicsImageRenderer(size: scroll.bounds.size).image(actions: { _ in
                 let bounds_ = scroll.bounds.offsetBy(dx: -scroll.contentOffset.x, dy: -scroll.contentOffset.y)
@@ -28,7 +28,7 @@ extension HarbethWrapper where Base: C7View {
         })
     }
     
-    public func toImage(bezierPath: UIBezierPath) -> C7Image {
+    @MainActor public func toImage(bezierPath: UIBezierPath) -> C7Image {
         let maskLayer = CAShapeLayer.init()
         maskLayer.path = bezierPath.cgPath
         maskLayer.fillColor = UIColor.black.cgColor
