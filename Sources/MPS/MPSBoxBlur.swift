@@ -11,13 +11,14 @@ import MetalPerformanceShaders
 // Note: @unchecked Sendable is used because this struct holds non-Sendable MPSImageBox. Ensure thread-safe usage.
 public struct MPSBoxBlur: MPSKernelProtocol, @unchecked Sendable {
     
+    private let metalDevice: MTLDevice
     public static let range: ParameterRange<Float, MPSBoxBlur> = .init(min: 0, max: 100, value: 10)
     
     /// The radius determines how many pixels are used to create the blur.
     @Clamping(MPSBoxBlur.range.min...MPSBoxBlur.range.max) public var radius: Float = MPSBoxBlur.range.value {
         didSet {
             let kernelSize = MPSBoxBlur.roundToOdd(radius)
-            self.boxBlur = MPSImageBox(device: Device.device(), kernelWidth: kernelSize, kernelHeight: kernelSize)
+            self.boxBlur = MPSImageBox(device: self.metalDevice, kernelWidth: kernelSize, kernelHeight: kernelSize)
         }
     }
     
@@ -34,9 +35,10 @@ public struct MPSBoxBlur: MPSKernelProtocol, @unchecked Sendable {
     
     private var boxBlur: MPSImageBox
     
-    public init(radius: Float = MPSBoxBlur.range.value) {
+    public init(radius: Float = MPSBoxBlur.range.value) async {
+        self.metalDevice = await Device.device()
         let kernelSize = MPSBoxBlur.roundToOdd(radius)
-        self.boxBlur = MPSImageBox(device: Device.device(), kernelWidth: kernelSize, kernelHeight: kernelSize)
+        self.boxBlur = MPSImageBox(device: self.metalDevice, kernelWidth: kernelSize, kernelHeight: kernelSize)
     }
     
     // MPS box blur kernels need to be odd

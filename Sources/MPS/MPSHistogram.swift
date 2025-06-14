@@ -12,14 +12,15 @@ import simd
 // Note: @unchecked Sendable is used because this struct holds non-Sendable MPSImageHistogram/Equalization. Ensure thread-safe usage.
 public struct MPSHistogram: MPSKernelProtocol, @unchecked Sendable {
     
+    private let metalDevice: MTLDevice
     public static let range: ParameterRange<Int, MPSHistogram> = .init(min: 0, max: 8, value: 2)
     
     @Clamping(MPSHistogram.range.min...MPSHistogram.range.max) public var histogramEntries: Int = MPSHistogram.range.value {
         didSet {
             var histogramInfo = MPSHistogram.createMPSImageHistogramInfo(histogramEntries)
-            self.histogram = MPSImageHistogram(device: Device.device(), histogramInfo: &histogramInfo)
+            self.histogram = MPSImageHistogram(device: self.metalDevice, histogramInfo: &histogramInfo)
             self.histogram.zeroHistogram = false // Ensure this is set in didSet as well
-            self.equalization = MPSImageHistogramEqualization(device: Device.device(), histogramInfo: &histogramInfo)
+            self.equalization = MPSImageHistogramEqualization(device: self.metalDevice, histogramInfo: &histogramInfo)
         }
     }
     
@@ -31,7 +32,7 @@ public struct MPSHistogram: MPSKernelProtocol, @unchecked Sendable {
         let destinationTexture = textures[0]
         let sourceTexture = textures[1]
         let bufferLength = histogram.histogramSize(forSourceFormat: sourceTexture.pixelFormat)
-        guard let histogramBuffer = Device.device().makeBuffer(length: bufferLength, options: [.storageModePrivate]) else {
+        guard let histogramBuffer = self.metalDevice.makeBuffer(length: bufferLength, options: [.storageModePrivate]) else {
             return destinationTexture
         }
         histogram.encode(to: commandBuffer, sourceTexture: sourceTexture, histogram: histogramBuffer, histogramOffset: 0)
@@ -45,11 +46,12 @@ public struct MPSHistogram: MPSKernelProtocol, @unchecked Sendable {
     private var histogram: MPSImageHistogram
     private var equalization: MPSImageHistogramEqualization
     
-    public init(histogramEntries: Int = MPSHistogram.range.value) {
+    public init(histogramEntries: Int = MPSHistogram.range.value) async {
+        self.metalDevice = await Device.device()
         var histogramInfo = MPSHistogram.createMPSImageHistogramInfo(histogramEntries)
-        self.histogram = MPSImageHistogram(device: Device.device(), histogramInfo: &histogramInfo)
+        self.histogram = MPSImageHistogram(device: self.metalDevice, histogramInfo: &histogramInfo)
         self.histogram.zeroHistogram = false
-        self.equalization = MPSImageHistogramEqualization(device: Device.device(), histogramInfo: &histogramInfo)
+        self.equalization = MPSImageHistogramEqualization(device: self.metalDevice, histogramInfo: &histogramInfo)
     }
 }
 
