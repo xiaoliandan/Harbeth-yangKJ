@@ -9,9 +9,10 @@ import Foundation
 import AVFoundation
 import Harbeth
 
-/// 相机数据采集器，在主线程返回图片
-/// The camera data collector returns pictures in the main thread.
-public final class C7CollectorCamera: C7Collector {
+// Note: @unchecked Sendable is used because C7CollectorCamera manages AVFoundation objects (like AVCaptureSession)
+// and uses specific dispatch queues for synchronization. Its safe concurrent use relies on this internal queue management
+// rather than full Sendable conformance of all its properties, especially due to synchronous delegate requirements.
+public final class C7CollectorCamera: C7Collector, @unchecked Sendable {
     
     private let sessionQueue = DispatchQueue(label: "camera.session.collector.metal")
     private let bufferQueue  = DispatchQueue(label: "camera.collector.buffer.metal")
