@@ -75,7 +75,8 @@ public final class C7CollectorCamera: C7Collector {
 extension C7CollectorCamera {
     
     public func startRunning() {
-        sessionQueue.async {
+        sessionQueue.async { [weak self] in
+            guard let self = self else { return }
             self.captureSession.startRunning()
         }
     }
