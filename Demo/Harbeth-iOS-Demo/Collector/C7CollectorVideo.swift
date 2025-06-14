@@ -52,7 +52,7 @@ extension C7CollectorVideo {
         if let currentItem = player.currentItem {
             let localVideoOutput = self.videoOutput
             DispatchQueue.main.async {
-                currentItem.add(localVideoOutput)
+                currentItem.add(localVideoOutput!)
             }
         }
     }
