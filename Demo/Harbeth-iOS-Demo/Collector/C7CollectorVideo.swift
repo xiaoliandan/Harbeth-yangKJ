@@ -16,16 +16,7 @@ public final class C7CollectorVideo: C7Collector, @unchecked Sendable {
     
     private var player: AVPlayer!
     public private(set) var videoOutput: AVPlayerItemVideoOutput!
-    
-    lazy var displayLink: CADisplayLink = {
-        let dl = CADisplayLink(target: self, selector: #selector(readBuffer(_:)))
-        // Ensure 'add' and initial 'isPaused' state are set on the main thread.
-        DispatchQueue.main.async {
-            dl.add(to: .main, forMode: .default)
-            dl.isPaused = true
-        }
-        return dl
-    }()
+    private var displayLink: CADisplayLink?
     
     public convenience init(player: AVPlayer, delegate: C7CollectorImageDelegate) {
         self.init(delegate: delegate)
@@ -38,12 +29,23 @@ public final class C7CollectorVideo: C7Collector, @unchecked Sendable {
         Task { @MainActor [weak self] in
             guard let self = self else { return }
             self.setupVideoOutput()
+            self.setupDisplayLink() // Add this line
         }
     }
 }
 
 extension C7CollectorVideo {
     
+    @MainActor private func setupDisplayLink() {
+        // Ensure it's only initialized once.
+        if self.displayLink == nil {
+            let dl = CADisplayLink(target: self, selector: #selector(readBuffer(_:)))
+            dl.add(to: .main, forMode: .default)
+            dl.isPaused = true
+            self.displayLink = dl
+        }
+    }
+
     public func play() {
         player.play() // AVPlayer.play() is thread-safe
         DispatchQueue.main.async { [weak self] in
