@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct C7Toon: C7FilterProtocol {
+public struct C7Toon: C7FilterProtocol, Sendable {
     
     public static let thresholdRange: ParameterRange<Float, Self> = .init(min: 0.0, max: 1.0, value: 0.2)
     

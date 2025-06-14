@@ -8,7 +8,7 @@
 import Foundation
 import CoreImage
 
-public struct CIVignette: CoreImageProtocol {
+public struct CIVignette: CoreImageProtocol, Sendable {
     
     public static let range: ParameterRange<Float, Self> = .init(min: 0, max: 2, value: 0.0)
     

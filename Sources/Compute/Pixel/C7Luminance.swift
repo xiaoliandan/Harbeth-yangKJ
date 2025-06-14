@@ -8,7 +8,7 @@
 import Foundation
 
 /// 亮度
-public struct C7Luminance: C7FilterProtocol {
+public struct C7Luminance: C7FilterProtocol, Sendable {
     
     public static let range: ParameterRange<Float, Self> = .init(min: 0.0, max: 1.0, value: 1.0)
     

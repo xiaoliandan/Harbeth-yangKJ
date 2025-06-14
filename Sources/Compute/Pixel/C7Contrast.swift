@@ -8,7 +8,7 @@
 import Foundation
 
 /// 对比度
-public struct C7Contrast: C7FilterProtocol {
+public struct C7Contrast: C7FilterProtocol, Sendable {
     
     public static let range: ParameterRange<Float, Self> = .init(min: 0, max: 2.0, value: 1.0)
     

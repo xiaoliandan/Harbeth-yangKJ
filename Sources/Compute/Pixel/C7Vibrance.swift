@@ -8,7 +8,7 @@
 import Foundation
 
 /// 自然饱和度
-public struct C7Vibrance: C7FilterProtocol {
+public struct C7Vibrance: C7FilterProtocol, Sendable {
     
     public static let range: ParameterRange<Float, Self> = .init(min: -1.2, max: 1.2, value: 0.0)
     

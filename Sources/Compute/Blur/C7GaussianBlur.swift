@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct C7GaussianBlur: C7FilterProtocol {
+public struct C7GaussianBlur: C7FilterProtocol, Sendable {
     
     public static let range: ParameterRange<Float, Self> = .init(min: 0, max: 100, value: 10)
     

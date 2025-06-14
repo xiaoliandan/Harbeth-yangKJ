@@ -8,7 +8,7 @@
 import Foundation
 
 /// 亮度
-public struct C7Brightness: C7FilterProtocol {
+public struct C7Brightness: C7FilterProtocol, Sendable {
     
     /// The adjusted brightness, from -1.0 to 1.0, with a default of 0.0 being the original picture.
     public static let range: ParameterRange<Float, Self> = .init(min: -1.0, max: 1.0, value: 0.0)

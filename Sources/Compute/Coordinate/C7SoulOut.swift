@@ -8,7 +8,7 @@
 import Foundation
 
 /// 灵魂出窍效果
-public struct C7SoulOut: C7FilterProtocol {
+public struct C7SoulOut: C7FilterProtocol, Sendable {
     
     public static let range: ParameterRange<Float, Self> = .init(min: 0.0, max: 1.0, value: 0.5)
     

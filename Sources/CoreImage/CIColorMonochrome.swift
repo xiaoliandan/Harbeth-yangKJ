@@ -9,7 +9,7 @@ import Foundation
 import CoreImage
 
 /// 单色滤镜
-public struct CIColorMonochrome: CoreImageProtocol {
+public struct CIColorMonochrome: CoreImageProtocol, Sendable {
     
     public static let range: ParameterRange<Float, Self> = .init(min: 0.0, max: 1.0, value: 1.0)
     

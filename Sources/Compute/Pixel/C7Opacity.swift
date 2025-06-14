@@ -8,7 +8,7 @@
 import Foundation
 
 /// 透明度调整，核心就是改变`alpha`
-public struct C7Opacity: C7FilterProtocol {
+public struct C7Opacity: C7FilterProtocol, Sendable {
     
     public static let range: ParameterRange<Float, Self> = .init(min: 0.0, max: 1.0, value: 1.0)
     

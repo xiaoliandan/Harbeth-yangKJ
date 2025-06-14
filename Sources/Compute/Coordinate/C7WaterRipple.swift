@@ -8,7 +8,7 @@
 import Foundation
 
 /// 水波纹效果
-public struct C7WaterRipple: C7FilterProtocol {
+public struct C7WaterRipple: C7FilterProtocol, Sendable {
     
     public static let rippleRange: ParameterRange<Float, Self> = .init(min: 0.0, max: 1.0, value: 0.0)
     

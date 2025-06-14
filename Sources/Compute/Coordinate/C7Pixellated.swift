@@ -8,7 +8,7 @@
 import Foundation
 
 /// 马赛克像素化
-public struct C7Pixellated: C7FilterProtocol {
+public struct C7Pixellated: C7FilterProtocol, Sendable {
     
     public static let range: ParameterRange<Float, Self> = .init(min: 0.0, max: 1.0, value: 0.05)
     

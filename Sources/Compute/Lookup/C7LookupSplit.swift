@@ -8,7 +8,7 @@
 import Foundation
 import MetalKit
 
-public struct C7LookupSplit: C7FilterProtocol {
+public struct C7LookupSplit: C7FilterProtocol, Sendable {
     
     public enum Orientation {
         case top, left, center

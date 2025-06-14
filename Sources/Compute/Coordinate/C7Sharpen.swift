@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct C7Sharpen: C7FilterProtocol {
+public struct C7Sharpen: C7FilterProtocol, Sendable {
     
     public static let range: ParameterRange<Float, Self> = .init(min: -4.0, max: 4.0, value: 0.0)
     

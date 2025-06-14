@@ -9,7 +9,7 @@ import Foundation
 
 // See: https://www.imgonline.com.ua/eng/blur-angular.php
 // https://support.apple.com/en-in/guide/motion/motn169f953e/mac
-public struct C7CircleBlur: C7FilterProtocol {
+public struct C7CircleBlur: C7FilterProtocol, Sendable {
     
     public static let range: ParameterRange<Float, Self> = .init(min: 0, max: 100, value: 10)
     

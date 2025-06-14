@@ -8,7 +8,7 @@
 import Foundation
 
 /// 灰度系数
-public struct C7Gamma: C7FilterProtocol {
+public struct C7Gamma: C7FilterProtocol, Sendable {
     
     public static let range: ParameterRange<Float, Self> = .init(min: 0.0, max: 3.0, value: 1.0)
     
