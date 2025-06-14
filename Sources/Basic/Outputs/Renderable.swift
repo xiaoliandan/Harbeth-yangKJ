@@ -104,7 +104,7 @@ extension Renderable {
         }
     }
     
-    public func filtering() {
+    @MainActor public func filtering() {
         guard let texture = inputSource, filters.count > 0 else {
             return
         }
@@ -121,9 +121,12 @@ extension Renderable {
             }
         } else {
             dest.transmitOutput(success: { [weak self] result in
-                self?.lockedSource = true
-                self?.setupOutputDest(result)
-                self?.lockedSource = false
+                Task { @MainActor in
+                    guard let self = self else { return } // Ensure self is valid
+                    self.lockedSource = true
+                    self.setupOutputDest(result)
+                    self.lockedSource = false
+                }
             })
         }
     }

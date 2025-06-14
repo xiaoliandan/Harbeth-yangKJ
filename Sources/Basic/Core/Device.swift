@@ -31,7 +31,7 @@ public final class Device: Cacheable {
     /// CIContexts
     lazy var contexts = [CGColorSpace: CIContext]()
     
-    init() {
+    init() async {
         guard let device = MTLCreateSystemDefaultDevice() else {
             fatalError("Could not create Metal Device")
         }
@@ -47,7 +47,7 @@ public final class Device: Cacheable {
         } else {
             self.defaultLibrary = device.makeDefaultLibrary()
         }
-        self.harbethLibrary = Device.makeFrameworkLibrary(device, for: "Harbeth")
+        self.harbethLibrary = await Device.makeFrameworkLibrary(device, for: "Harbeth")
         
         if defaultLibrary == nil && harbethLibrary == nil {
             HarbethError.failed("Could not load library")
@@ -61,7 +61,7 @@ public final class Device: Cacheable {
 
 extension Device {
     
-    public static func makeFrameworkLibrary(_ device: MTLDevice, for resource: String) -> MTLLibrary? {
+    public static func makeFrameworkLibrary(_ device: MTLDevice, for resource: String) async -> MTLLibrary? {
         #if SWIFT_PACKAGE
         /// Fixed the Swift PM cannot read the `.metal` file.
         /// https://stackoverflow.com/questions/63237395/generating-resource-bundle-accessor-type-bundle-has-no-member-module
@@ -69,13 +69,8 @@ extension Device {
             return library
         }
         if let pathURL = Bundle.module.url(forResource: "default", withExtension: "metallib") {
-            var path: String
-            if #available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *) {
-                path = pathURL.path()
-            } else {
-                path = pathURL.path
-            }
-            if let library = try? device.makeLibrary(filepath: path) {
+            // pathURL is already a URL
+            if let library = try? device.newLibrary(URL: pathURL) {
                 return library
             }
         }
@@ -86,20 +81,30 @@ extension Device {
             return library
         }
         
-        let bundle = R.readFrameworkBundle(with: resource)
+        let bundle = await R.readFrameworkBundle(with: resource)
         /// Fixed libraryFile is nil. podspec file `s.static_framework = false`
         /// https://github.com/CocoaPods/CocoaPods/issues/7967
         guard let libraryFile = bundle?.path(forResource: "default", ofType: "metallib") else {
             return nil
         }
         
+        let fileURL = URL(fileURLWithPath: libraryFileOrPath)
         /// Compatible with the Bundle address used by CocoaPods to import framework.
-        if let library = try? device.makeLibrary(filepath: libraryFile) {
+        // The makeLibrary(filepath:) was deprecated in iOS 14.0+
+        // The makeLibrary(URL:) was deprecated in iOS 16.0+
+        // Using newLibrary(URL:) which is available iOS 8.0+
+        if let library = try? device.newLibrary(URL: fileURL) {
             return library
         }
         
-        if #available(macOS 10.13, iOS 11.0, *) {
-            if let url = URL(string: libraryFile), let library = try? device.makeLibrary(URL: url) {
+        // This #available block for makeLibrary(URL:) is now redundant due to newLibrary(URL:) above.
+        // However, keeping it doesn't hurt as newLibrary should be preferred.
+        // If newLibrary failed, this would also likely fail or not be reached.
+        if #available(macOS 10.13, iOS 11.0, *) { // Guard for URL(string:) which is not the primary concern here
+            // URL(string: libraryFileOrPath) might be problematic if libraryFileOrPath is not a valid URL string
+            // but URL(fileURLWithPath:) is safer. The previous newLibrary(URL: fileURL) should cover this.
+            // For safety, let's assume fileURL is the correct one to use if we were to keep this block.
+            if let library = try? device.newLibrary(URL: fileURL) { // Changed to newLibrary for consistency
                 return library
             }
         }

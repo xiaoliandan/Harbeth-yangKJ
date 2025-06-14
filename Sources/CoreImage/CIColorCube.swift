@@ -55,7 +55,7 @@ extension CIColorCube.Resource {
             bundle.path(forResource: name, ofType: $0)
         }
         guard let path = paths.first,
-              let contents = try? String(contentsOfFile: path),
+              let contents = try? String(contentsOfFile: path, encoding: .utf8),
               let dimension = takeDimension(from: contents, pattern: LUT_3D) else {
             return nil
         }

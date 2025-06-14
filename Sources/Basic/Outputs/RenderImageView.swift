@@ -25,7 +25,7 @@ public final class RenderImageView: C7ImageView, Renderable {
 
 extension Renderable where Self: C7ImageView {
     
-    public func setupInputSource() {
+    @MainActor public func setupInputSource() {
         if lockedSource {
             return
         }
@@ -34,7 +34,7 @@ extension Renderable where Self: C7ImageView {
         }
     }
     
-    public func setupOutputDest(_ dest: MTLTexture) {
+    @MainActor public func setupOutputDest(_ dest: MTLTexture) {
         DispatchQueue.main.async {
             if let image = self.image {
                 self.lockedSource = true
