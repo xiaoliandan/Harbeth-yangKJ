@@ -28,20 +28,20 @@ public protocol Renderable: AnyObject {
     func setupOutputDest(_ dest: MTLTexture)
 }
 
-fileprivate let C7ATRenderableSetFiltersContext: UInt8 = 0
-fileprivate let C7ATRenderableInputSourceContext: UInt8 = 0
-fileprivate let C7ATRenderableTransmitOutputRealTimeCommitContext: UInt8 = 0
-fileprivate let C7ATRenderableKeepAroundForSynchronousRenderContext: UInt8 = 0
+fileprivate let C7ATRenderableSetFiltersContext: UInt8 = 1
+fileprivate let C7ATRenderableInputSourceContext: UInt8 = 2
+fileprivate let C7ATRenderableTransmitOutputRealTimeCommitContext: UInt8 = 3
+fileprivate let C7ATRenderableKeepAroundForSynchronousRenderContext: UInt8 = 4
 
 extension Renderable {
     public var filters: [C7FilterProtocol] {
         get {
             return synchronizedRenderable {
-                if let object = objc_getAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableSetFiltersContext))) as? [C7FilterProtocol] {
+                if let object = objc_getAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableSetFiltersContext))!) as? [C7FilterProtocol] {
                     return object
                 } else {
                     let object = [C7FilterProtocol]()
-                    objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableSetFiltersContext)), object, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+                    objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableSetFiltersContext))!, object, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
                     return object
                 }
             }
@@ -49,7 +49,7 @@ extension Renderable {
         set {
             synchronizedRenderable {
                 setupInputSource()
-                objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableSetFiltersContext)), newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+                objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableSetFiltersContext))!, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
                 filtering()
             }
         }
@@ -58,17 +58,17 @@ extension Renderable {
     public var keepAroundForSynchronousRender: Bool {
         get {
             return synchronizedRenderable {
-                if let object = objc_getAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableKeepAroundForSynchronousRenderContext))) as? Bool {
+                if let object = objc_getAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableKeepAroundForSynchronousRenderContext))!) as? Bool {
                     return object
                 } else {
-                    objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableKeepAroundForSynchronousRenderContext)), true, .OBJC_ASSOCIATION_ASSIGN)
+                    objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableKeepAroundForSynchronousRenderContext))!, true, .OBJC_ASSOCIATION_ASSIGN)
                     return true
                 }
             }
         }
         set {
             synchronizedRenderable {
-                objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableKeepAroundForSynchronousRenderContext)), newValue, .OBJC_ASSOCIATION_ASSIGN)
+                objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableKeepAroundForSynchronousRenderContext))!, newValue, .OBJC_ASSOCIATION_ASSIGN)
             }
         }
     }
@@ -76,17 +76,17 @@ extension Renderable {
     public var transmitOutputRealTimeCommit: Bool {
         get {
             return synchronizedRenderable {
-                if let object = objc_getAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableTransmitOutputRealTimeCommitContext))) as? Bool {
+                if let object = objc_getAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableTransmitOutputRealTimeCommitContext))!) as? Bool {
                     return object
                 } else {
-                    objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableTransmitOutputRealTimeCommitContext)), false, .OBJC_ASSOCIATION_ASSIGN)
+                    objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableTransmitOutputRealTimeCommitContext))!, false, .OBJC_ASSOCIATION_ASSIGN)
                     return false
                 }
             }
         }
         set {
             synchronizedRenderable {
-                objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableTransmitOutputRealTimeCommitContext)), newValue, .OBJC_ASSOCIATION_ASSIGN)
+                objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableTransmitOutputRealTimeCommitContext))!, newValue, .OBJC_ASSOCIATION_ASSIGN)
             }
         }
     }
@@ -94,12 +94,12 @@ extension Renderable {
     public weak var inputSource: MTLTexture? {
         get {
             synchronizedRenderable {
-                objc_getAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableInputSourceContext))) as? MTLTexture
+                objc_getAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableInputSourceContext))!) as? MTLTexture
             }
         }
         set {
             synchronizedRenderable {
-                objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableInputSourceContext)), newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+                objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableInputSourceContext))!, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             }
         }
     }
@@ -129,23 +129,23 @@ extension Renderable {
     }
 }
 
-fileprivate let C7ATRenderableLockedSourceContext: UInt8 = 0
+fileprivate let C7ATRenderableLockedSourceContext: UInt8 = 5
 
 extension Renderable {
     var lockedSource: Bool {
         get {
             return synchronizedRenderable {
-                if let locked = objc_getAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableLockedSourceContext))) as? Bool {
+                if let locked = objc_getAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableLockedSourceContext))!) as? Bool {
                     return locked
                 } else {
-                    objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableLockedSourceContext)), false, .OBJC_ASSOCIATION_ASSIGN)
+                    objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableLockedSourceContext))!, false, .OBJC_ASSOCIATION_ASSIGN)
                     return false
                 }
             }
         }
         set {
             synchronizedRenderable {
-                objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableLockedSourceContext)), newValue, .OBJC_ASSOCIATION_ASSIGN)
+                objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableLockedSourceContext))!, newValue, .OBJC_ASSOCIATION_ASSIGN)
             }
         }
     }

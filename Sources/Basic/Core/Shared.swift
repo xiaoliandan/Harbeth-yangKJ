@@ -10,6 +10,7 @@ import ObjectiveC
 
 public final class Shared: Sendable {
     
+    fileprivate static let C7ATSharedContext: UInt8 = 0
     public static let shared = Shared()
     
     /// 释放`Device`资源
@@ -27,7 +28,7 @@ public final class Shared: Sendable {
     /// Whether the Device resource has been initialized.
     public var hasDevice: Bool {
         return synchronizedDevice {
-            if let _ = objc_getAssociatedObject(self, &C7ATSharedContext) {
+            if let _ = objc_getAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATSharedContext) + 1)!) {
                 return true
             }
             return false
@@ -42,26 +43,24 @@ public final class Shared: Sendable {
     private init() { }
 }
 
-fileprivate static let C7ATSharedContext: UInt8 = 0
-
 extension Shared {
     
     /// Device instantiation
     weak var device: Device? {
         get {
             return synchronizedDevice {
-                if let object = objc_getAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATSharedContext))) {
+                if let object = objc_getAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATSharedContext) + 1)!) {
                     return object as? Device
                 } else {
                     let object = Device()
-                    objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATSharedContext)), object, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+                    objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATSharedContext) + 1)!, object, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
                     return object
                 }
             }
         }
         set {
             synchronizedDevice {
-                objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATSharedContext)), newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+                objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATSharedContext) + 1)!, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             }
         }
     }
