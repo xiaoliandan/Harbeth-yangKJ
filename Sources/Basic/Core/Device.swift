@@ -84,11 +84,11 @@ extension Device {
         let bundle = await R.readFrameworkBundle(with: resource)
         /// Fixed libraryFile is nil. podspec file `s.static_framework = false`
         /// https://github.com/CocoaPods/CocoaPods/issues/7967
-        guard let libraryFile = bundle?.path(forResource: "default", ofType: "metallib") else {
+        guard let libraryFile = bundle?.path(forResource: "default", ofType: "metallib") else { // Should be libraryFileOrPath if used below, or use libraryFile
             return nil
         }
         
-        let fileURL = URL(fileURLWithPath: libraryFileOrPath)
+        let fileURL = URL(fileURLWithPath: libraryFile) // Corrected to libraryFile
         /// Compatible with the Bundle address used by CocoaPods to import framework.
         // The makeLibrary(filepath:) was deprecated in iOS 14.0+
         // The makeLibrary(URL:) was deprecated in iOS 16.0+
@@ -112,13 +112,14 @@ extension Device {
         return nil
     }
     
-    static func readMTLFunction(_ name: String) throws -> MTLFunction {
+    static func readMTLFunction(_ name: String) async throws -> MTLFunction {
+        let sharedDevice = await Shared.shared.getInitializedDevice()
         // First read the project
-        if let libray = Shared.shared.device?.defaultLibrary, let function = libray.makeFunction(name: name) {
+        if let libray = sharedDevice.defaultLibrary, let function = libray.makeFunction(name: name) {
             return function
         }
         // Then read from ``Harbeth Framework``
-        if let libray = Shared.shared.device?.harbethLibrary, let function = libray.makeFunction(name: name) {
+        if let libray = sharedDevice.harbethLibrary, let function = libray.makeFunction(name: name) {
             return function
         }
         #if DEBUG
@@ -131,13 +132,14 @@ extension Device {
 
 extension Device {
     
-    public static func device() -> MTLDevice {
-        return Shared.shared.device!.device
+    public static func device() async -> MTLDevice {
+        let d = await Shared.shared.getInitializedDevice()
+        return d.device
     }
     
-    public static func colorSpace() -> CGColorSpace {
-        // Unitive the color space, otherwise it will crash.
-        return Shared.shared.device?.colorSpace ?? CGColorSpaceCreateDeviceRGB()
+    public static func colorSpace() async -> CGColorSpace {
+        let d = await Shared.shared.getInitializedDevice()
+        return d.colorSpace
     }
     
     public static func bitmapInfo() -> UInt32 {
@@ -147,25 +149,28 @@ extension Device {
         return CGBitmapInfo.byteOrder32Big.rawValue | CGImageAlphaInfo.premultipliedLast.rawValue
     }
     
-    public static func commandQueue() -> MTLCommandQueue {
-        return Shared.shared.device!.commandQueue
+    public static func commandQueue() async -> MTLCommandQueue {
+        let d = await Shared.shared.getInitializedDevice()
+        return d.commandQueue
     }
     
-    public static func sharedTextureCache() -> CVMetalTextureCache? {
-        return Shared.shared.device?.textureCache
+    public static func sharedTextureCache() async -> CVMetalTextureCache? {
+        let d = await Shared.shared.getInitializedDevice()
+        return d.textureCache
     }
     
-    public static func context() -> CIContext {
-        Device.context(colorSpace: Device.colorSpace())
+    public static func context() async -> CIContext {
+        return await Device.context(colorSpace: await Device.colorSpace())
     }
     
-    public static func context(cgImage: CGImage) -> CIContext {
-        let colorSpace = cgImage.colorSpace ?? Device.colorSpace()
-        return Device.context(colorSpace: colorSpace)
+    public static func context(cgImage: CGImage) async -> CIContext {
+        let cs = cgImage.colorSpace ?? (await Device.colorSpace())
+        return await Device.context(colorSpace: cs)
     }
     
-    public static func context(colorSpace: CGColorSpace) -> CIContext {
-        if let context = Shared.shared.device?.contexts[colorSpace] {
+    public static func context(colorSpace: CGColorSpace) async -> CIContext {
+        let sharedDevice = await Shared.shared.getInitializedDevice()
+        if let context = sharedDevice.contexts[colorSpace] {
             return context
         }
         var options: [CIContextOption : Any] = [
@@ -185,19 +190,20 @@ extension Device {
             // Sounds more like allowLowPerformance, though, so turn it off
             options[CIContextOption.allowLowPower] = false
         }
-        if let workingColorSpace = Shared.shared.device?.workingColorSpace {
+        if let workingColorSpace = sharedDevice.workingColorSpace {
             // We are likely to encounter images with wider colour than sRGB
             options[CIContextOption.workingColorSpace] = workingColorSpace
         }
         let context: CIContext
+        // Updated to await async versions of commandQueue() and device()
         if #available(iOS 13.0, *, macOS 10.15, *) {
-            context = CIContext(mtlCommandQueue: Device.commandQueue(), options: options)
+            context = CIContext(mtlCommandQueue: await Device.commandQueue(), options: options)
         } else if #available(iOS 9.0, *, macOS 10.11, *) {
-            context = CIContext(mtlDevice: Device.device(), options: options)
+            context = CIContext(mtlDevice: await Device.device(), options: options)
         } else {
             context = CIContext(options: options)
         }
-        Shared.shared.device?.contexts[colorSpace] = context
+        sharedDevice.contexts[colorSpace] = context // Mutating actor's property via reference
         return context
     }
 }
