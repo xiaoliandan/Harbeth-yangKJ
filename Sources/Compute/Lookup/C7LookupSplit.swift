@@ -6,6 +6,7 @@
 //
 
 import Foundation
+@preconcurrency import Metal
 import MetalKit
 
 public struct C7LookupSplit: C7FilterProtocol, Sendable {
