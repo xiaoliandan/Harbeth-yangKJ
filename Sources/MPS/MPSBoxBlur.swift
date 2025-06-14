@@ -8,12 +8,13 @@
 import Foundation
 import MetalPerformanceShaders
 
-public actor MPSBoxBlur: MPSKernelProtocol {
+// Note: @unchecked Sendable is used because this struct holds non-Sendable MPSImageBox. Ensure thread-safe usage.
+public struct MPSBoxBlur: MPSKernelProtocol, @unchecked Sendable {
     
-    public static let range: ParameterRange<Float, Self> = .init(min: 0, max: 100, value: 10)
+    public static let range: ParameterRange<Float, MPSBoxBlur> = .init(min: 0, max: 100, value: 10)
     
     /// The radius determines how many pixels are used to create the blur.
-    @Clamping(range.min...range.max) public var radius: Float = range.value {
+    @Clamping(MPSBoxBlur.range.min...MPSBoxBlur.range.max) public var radius: Float = MPSBoxBlur.range.value {
         didSet {
             let kernelSize = MPSBoxBlur.roundToOdd(radius)
             self.boxBlur = MPSImageBox(device: Device.device(), kernelWidth: kernelSize, kernelHeight: kernelSize)
@@ -33,7 +34,7 @@ public actor MPSBoxBlur: MPSKernelProtocol {
     
     private var boxBlur: MPSImageBox
     
-    public init(radius: Float = range.value) {
+    public init(radius: Float = MPSBoxBlur.range.value) {
         let kernelSize = MPSBoxBlur.roundToOdd(radius)
         self.boxBlur = MPSImageBox(device: Device.device(), kernelWidth: kernelSize, kernelHeight: kernelSize)
     }
