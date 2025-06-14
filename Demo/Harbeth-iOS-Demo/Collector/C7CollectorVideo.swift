@@ -21,7 +21,7 @@ public final class C7CollectorVideo: C7Collector {
         return displayLink
     }()
     
-    public convenience init(player: AVPlayer, delegate: C7CollectorImageDelegate) {
+    @MainActor public convenience init(player: AVPlayer, delegate: C7CollectorImageDelegate) {
         self.init(delegate: delegate)
         self.player = player
         setupPlayer(player)
