@@ -8,7 +8,7 @@
 import Foundation
 import ObjectiveC
 
-public final class Shared {
+public final class Shared: Sendable {
     
     public static let shared = Shared()
     
@@ -42,7 +42,7 @@ public final class Shared {
     private init() { }
 }
 
-fileprivate var C7ATSharedContext: UInt8 = 0
+fileprivate let C7ATSharedContext: UInt8 = 0
 
 extension Shared {
     

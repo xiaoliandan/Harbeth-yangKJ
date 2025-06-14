@@ -9,7 +9,7 @@ import Foundation
 
 /// Range wrapper.
 /// Example: ``@Clamping(0...2) var radius: Float = 1.0``
-@propertyWrapper public struct Clamping<Value: Comparable> {
+@propertyWrapper public struct Clamping<Value: Comparable & Sendable>: Sendable {
     private var value: Value
     private let range: ClosedRange<Value>
     

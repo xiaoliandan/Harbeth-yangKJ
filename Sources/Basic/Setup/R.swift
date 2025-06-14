@@ -12,6 +12,8 @@ import UIKit
 import AppKit
 #endif
 
+fileprivate struct AnySendableTarget: Sendable {}
+
 /// 资源文件读取
 public struct R {
     
@@ -25,7 +27,7 @@ public struct R {
         return Bundle(path: components.joined(separator: "/")) ?? Bundle.main
     }()
     
-    public static var cacheBundles = [String: Bundle]()
+    internal static let cacheBundles = [String: Bundle]()
     
     /// Read image resources
     public static func image(_ named: String, forResource: String = "Harbeth") -> C7Image? {
@@ -99,7 +101,7 @@ fileprivate final class R__ { }
 
 extension R {
     
-    public static let iRange: ParameterRange<Float, Any> = .init(min: 0.0, max: 1.0, value: 1.0)
+    public static let iRange: ParameterRange<Float, AnySendableTarget> = .init(min: 0.0, max: 1.0, value: 1.0)
     /// 强度范围
     /// Intensity range, used to adjust the mixing ratio of filters and sources.
     public static let intensityRange = iRange

@@ -19,14 +19,14 @@ public struct TextureLoader {
         .generateMipmaps: NSNumber(value: false),
         .SRGB: NSNumber(value: false),
         .textureCPUCacheMode: NSNumber(value: true),
-    ] as [MTKTextureLoader.Option: Any]
+    ] as [MTKTextureLoader.Option: NSNumber]
     
     public static let shaderReadTextureOptions = [
         .textureUsage: NSNumber(value: MTLTextureUsage.shaderRead.rawValue),
         .generateMipmaps: NSNumber(value: false),
         .SRGB: NSNumber(value: false),
         .textureCPUCacheMode: NSNumber(value: true),
-    ] as [MTKTextureLoader.Option: Any]
+    ] as [MTKTextureLoader.Option: NSNumber]
     
     /// A metal texture.
     public let texture: MTLTexture

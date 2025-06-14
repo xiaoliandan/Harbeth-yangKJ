@@ -24,7 +24,7 @@ public protocol Cacheable: AnyObject {
     func deferTextureCache()
 }
 
-fileprivate var C7ATCacheContext: UInt8 = 0
+fileprivate let C7ATCacheContext: UInt8 = 0
 
 extension Cacheable {
     public var textureCache: CVMetalTextureCache? {
