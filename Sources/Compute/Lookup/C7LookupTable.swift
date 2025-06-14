@@ -35,8 +35,8 @@ public struct C7LookupTable: C7FilterProtocol {
         self.lookupTexture = image?.cgImage?.c7.toTexture()
     }
     
-    public init(name: String) {
-        self.init(image: R.image(name))
+    public init(name: String) async {
+        self.init(image: await R.image(name))
     }
     
     public init(lookupTexture: MTLTexture) {
