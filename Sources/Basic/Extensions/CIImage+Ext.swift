@@ -12,12 +12,12 @@ extension CIImage: HarbethCompatible { }
 
 extension HarbethWrapper where Base: CIImage {
     
-    public func toCGImage(context: CIContext? = nil) -> CGImage? {
+    public func toCGImage(context: CIContext? = nil) async -> CGImage? {
         if let cgImage = base.cgImage {
             return cgImage
         }
-        let context = context ?? Device.context(colorSpace: Device.colorSpace())
-        guard let cgImage = context.createCGImage(base, from: base.extent) else {
+        let effectiveContext = context ?? (await Device.context(colorSpace: await Device.colorSpace()))
+        guard let cgImage = effectiveContext.createCGImage(base, from: base.extent) else {
             return nil
         }
         return cgImage
@@ -46,15 +46,17 @@ extension HarbethWrapper where Base: CIImage {
     /// - Parameters:
     ///   - texture: Output the texture and write CIImage to the metal texture.
     ///   - commandBuffer: A valid MTLCommandBuffer to receive the encoded filter.
-    public func renderCIImageToTexture(_ texture: MTLTexture, commandBuffer: MTLCommandBuffer) throws {
-        let ctx = Device.context(colorSpace: Device.colorSpace())
+    public func renderCIImageToTexture(_ texture: MTLTexture, commandBuffer: MTLCommandBuffer) async throws {
+        let effectiveColorSpace = await Device.colorSpace()
+        let ctx = await Device.context(colorSpace: effectiveColorSpace)
         let img = fixHorizontalFlip()
         if #available(iOS 11.0, macOS 10.13, *) {
             let renderDestination = CIRenderDestination(mtlTexture: texture, commandBuffer: commandBuffer)
             //try ctx.prepareRender(img, from: img.extent, to: renderDestination, at: .zero)
             _ = try ctx.startTask(toRender: img, to: renderDestination)
         } else {
-            ctx.render(img, to: texture, commandBuffer: commandBuffer, bounds: img.extent, colorSpace: Device.colorSpace())
+            // The colorSpace parameter for ctx.render should also be the effectiveColorSpace
+            ctx.render(img, to: texture, commandBuffer: commandBuffer, bounds: img.extent, colorSpace: effectiveColorSpace)
         }
     }
     
@@ -83,18 +85,18 @@ extension HarbethWrapper where Base: CIImage {
     ///   - colorSpace: Color space
     ///   - context: An evaluation context for rendering image processing results and performing image analysis.
     /// - Returns: Newly created CGImage.
-    public func toCGImage(colorSpace: CGColorSpace? = nil, context: CIContext? = nil) -> CGImage? {
+    public func toCGImage(colorSpace: CGColorSpace? = nil, context: CIContext? = nil) async -> CGImage? {
         if let cgImage = base.cgImage {
             // Returns a CGImageRef if the CIImage was created.
             return cgImage
         }
-        let colorSpace = colorSpace ?? Device.colorSpace()
-        let context = context ?? Device.context(colorSpace: colorSpace)
+        let effectiveColorSpace = colorSpace ?? (await Device.colorSpace())
+        let effectiveContext = context ?? (await Device.context(colorSpace: effectiveColorSpace))
         // Pixel format and color space set as discussed around 21:50 in:
         // The `deferred: false` argument is important, to ensure significant rendering work will not
         // be performed later _at drawing time_ on the main thread.
         // See: https://developer.apple.com/videos/play/wwdc2016/505/
-        return context.createCGImage(base, from: base.extent, format: CIFormat.RGBAh, colorSpace: colorSpace, deferred: false)
+        return effectiveContext.createCGImage(base, from: base.extent, format: CIFormat.RGBAh, colorSpace: effectiveColorSpace, deferred: false)
     }
     
     public var hasIOSurface: Bool {

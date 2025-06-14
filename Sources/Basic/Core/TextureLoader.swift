@@ -44,78 +44,77 @@ public struct TextureLoader {
     /// - Parameters:
     ///   - cgImage: Bitmap image
     ///   - options: Dictonary of MTKTextureLoaderOptions.
-    public init(with cgImage: CGImage, options: [MTKTextureLoader.Option: Any]? = nil) throws {
-        guard let loader = Shared.shared.device?.textureLoader else {
-            throw HarbethError.textureLoader
-        }
-        let options = options ?? TextureLoader.defaultOptions
-        self.texture = try loader.newTexture(cgImage: cgImage, options: options)
+    public init(with cgImage: CGImage, options: [MTKTextureLoader.Option: Any]? = nil) async throws {
+        let deviceInstance = await Shared.shared.getInitializedDevice()
+        let loader = deviceInstance.textureLoader
+        let finalOptions = options ?? TextureLoader.defaultOptions
+        self.texture = try loader.newTexture(cgImage: cgImage, options: finalOptions)
     }
     
     /// Creates a new MTLTexture from a CIImage.
     /// - Parameters:
     ///   - ciImage: CIImage
     ///   - options: Dictonary of MTKTextureLoaderOptions.
-    public init(with ciImage: CIImage, options: [MTKTextureLoader.Option: Any]? = nil) throws {
-        let options = options ?? TextureLoader.defaultOptions
+    public init(with ciImage: CIImage, options: [MTKTextureLoader.Option: Any]? = nil) async throws {
+        let finalOptions = options ?? TextureLoader.defaultOptions
         let context: CIContext? = {
-            if options.keys.contains(where: { $0 == .sharedContext }) {
-                return options[.sharedContext] as? CIContext
+            if finalOptions.keys.contains(where: { $0 == .sharedContext }) {
+                return finalOptions[.sharedContext] as? CIContext
             }
             return nil
         }()
         guard let cgImage = ciImage.c7.toCGImage(context: context) else {
             throw HarbethError.source2Texture
         }
-        try self.init(with: cgImage, options: options)
+        try await self.init(with: cgImage, options: finalOptions)
     }
     
     /// Creates a new MTLTexture from a CVPixelBuffer.
     /// - Parameters:
     ///   - ciImage: CVPixelBuffer
     ///   - options: Dictonary of MTKTextureLoaderOptions.
-    public init(with pixelBuffer: CVPixelBuffer, options: [MTKTextureLoader.Option: Any]? = nil) throws {
+    public init(with pixelBuffer: CVPixelBuffer, options: [MTKTextureLoader.Option: Any]? = nil) async throws {
         guard let cgImage = pixelBuffer.c7.toCGImage() else {
             throw HarbethError.source2Texture
         }
-        let options = options ?? TextureLoader.defaultOptions
-        try self.init(with: cgImage, options: options)
+        let finalOptions = options ?? TextureLoader.defaultOptions
+        try await self.init(with: cgImage, options: finalOptions)
     }
     
     /// Creates a new MTLTexture from a CMSampleBuffer.
     /// - Parameters:
     ///   - ciImage: CVPixelBuffer
     ///   - options: Dictonary of MTKTextureLoaderOptions.
-    public init(with sampleBuffer: CMSampleBuffer, options: [MTKTextureLoader.Option: Any]? = nil) throws {
+    public init(with sampleBuffer: CMSampleBuffer, options: [MTKTextureLoader.Option: Any]? = nil) async throws {
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             throw HarbethError.CMSampleBufferToCVPixelBuffer
         }
-        let options = options ?? TextureLoader.defaultOptions
-        try self.init(with: pixelBuffer, options: options)
+        let finalOptions = options ?? TextureLoader.defaultOptions
+        // Since init(with pixelBuffer:) is now async, we await it.
+        try await self.init(with: pixelBuffer, options: finalOptions)
     }
     
     /// Creates a new MTLTexture from a UIImage / NSImage.
     /// - Parameters:
     ///   - image: A UIImage / NSImage.
     ///   - options: Dictonary of MTKTextureLoaderOptions.
-    public init(with image: C7Image, options: [MTKTextureLoader.Option: Any]? = nil) throws {
+    public init(with image: C7Image, options: [MTKTextureLoader.Option: Any]? = nil) async throws {
         guard let cgImage = image.c7.toCGImage() else {
             throw HarbethError.image2CGImage
         }
-        let options = options ?? TextureLoader.defaultOptions
-        try self.init(with: cgImage, options: options)
+        let finalOptions = options ?? TextureLoader.defaultOptions
+        try await self.init(with: cgImage, options: finalOptions)
     }
     
     /// Creates a new MTLTexture from a Data.
     /// - Parameters:
     ///   - data: Data.
     ///   - options: Dictonary of MTKTextureLoaderOptions.
-    public init(with data: Data, options: [MTKTextureLoader.Option: Any]? = nil) throws {
-        guard let loader = Shared.shared.device?.textureLoader else {
-            throw HarbethError.textureLoader
-        }
-        let options = options ?? TextureLoader.defaultOptions
-        self.texture = try loader.newTexture(data: data, options: options)
+    public init(with data: Data, options: [MTKTextureLoader.Option: Any]? = nil) async throws {
+        let deviceInstance = await Shared.shared.getInitializedDevice()
+        let loader = deviceInstance.textureLoader
+        let finalOptions = options ?? TextureLoader.defaultOptions
+        self.texture = try loader.newTexture(data: data, options: finalOptions)
     }
     
     #if os(macOS)
@@ -123,11 +122,11 @@ public struct TextureLoader {
     /// - Parameters:
     ///   - bitmap: NSBitmapImageRep.
     ///   - pixelFormat: Indicates the pixelFormat, The format of the picture should be consistent with the data.
-    public init(with bitmap: NSBitmapImageRep, pixelFormat: MTLPixelFormat = .rgba8Unorm) throws {
+    public init(with bitmap: NSBitmapImageRep, pixelFormat: MTLPixelFormat = .rgba8Unorm) async throws {
         guard let data: UnsafeMutablePointer<UInt8> = bitmap.bitmapData else {
             throw HarbethError.bitmapDataNotFound
         }
-        let texture = try TextureLoader.emptyTexture(width: Int(bitmap.size.width), height: Int(bitmap.size.height), options: [
+        let texture = try await TextureLoader.emptyTexture(width: Int(bitmap.size.width), height: Int(bitmap.size.height), options: [
             .texturePixelFormat: pixelFormat,
         ])
         let region = MTLRegionMake2D(0, 0, bitmap.pixelsWide, bitmap.pixelsHigh)
@@ -151,8 +150,8 @@ extension TextureLoader {
     /// - Parameters:
     ///   - size: The texture size.
     ///   - options: Configure other parameters about generating metal textures.
-    public static func makeTexture(at size: CGSize, options: [TextureLoader.Option: Any]? = nil) throws -> MTLTexture {
-        try makeTexture(width: Int(size.width), height: Int(size.height), options: options)
+    public static func makeTexture(at size: CGSize, options: [TextureLoader.Option: Any]? = nil) async throws -> MTLTexture {
+        try await makeTexture(width: Int(size.width), height: Int(size.height), options: options)
     }
     
     /// Create a new MTLTexture for later storage according to the texture parameters.
@@ -160,7 +159,7 @@ extension TextureLoader {
     ///   - width: The texture width, must be greater than 0, maximum resolution is 16384.
     ///   - height: The texture height, must be greater than 0, maximum resolution is 16384.
     ///   - options: Configure other parameters about generating metal textures.
-    public static func makeTexture(width: Int, height: Int, options: [TextureLoader.Option: Any]? = nil) throws -> MTLTexture {
+    public static func makeTexture(width: Int, height: Int, options: [TextureLoader.Option: Any]? = nil) async throws -> MTLTexture {
         let options = options ?? [TextureLoader.Option: Any]()
         var usage: MTLTextureUsage = [.shaderRead, .shaderWrite]
         var pixelFormat = MTLPixelFormat.rgba8Unorm
@@ -202,35 +201,35 @@ extension TextureLoader {
         if #available(iOS 12.0, macOS 10.14, *) {
             descriptor.allowGPUOptimizedContents = allowGPUOptimizedContents
         }
-        guard let texture = Device.device().makeTexture(descriptor: descriptor) else {
+        guard let texture = (await Device.device()).makeTexture(descriptor: descriptor) else {
             throw HarbethError.makeTexture
         }
         return texture
     }
     
-    public static func emptyTexture(at size: CGSize, options: [TextureLoader.Option: Any]? = nil) throws -> MTLTexture {
-        try makeTexture(at: size, options: options)
+    public static func emptyTexture(at size: CGSize, options: [TextureLoader.Option: Any]? = nil) async throws -> MTLTexture {
+        try await makeTexture(at: size, options: options)
     }
     
-    public static func emptyTexture(width: Int, height: Int, options: [TextureLoader.Option: Any]? = nil) throws -> MTLTexture {
-        try makeTexture(width: width, height: height, options: options)
+    public static func emptyTexture(width: Int, height: Int, options: [TextureLoader.Option: Any]? = nil) async throws -> MTLTexture {
+        try await makeTexture(width: width, height: height, options: options)
     }
 }
 
 extension TextureLoader {
     /// Creates a new only read metal texture from a given bitmap image.
     /// - Parameter cgImage: Bitmap image
-    public static func shaderReadTexture(with cgImage: CGImage) throws -> MTLTexture {
-        try TextureLoader.init(with: cgImage, options: TextureLoader.shaderReadTextureOptions).texture
+    public static func shaderReadTexture(with cgImage: CGImage) async throws -> MTLTexture {
+        try await TextureLoader.init(with: cgImage, options: TextureLoader.shaderReadTextureOptions).texture
     }
     
     /// Copy a new metal texture.
     /// - Parameter texture: Texture to be copied.
     /// - Returns: New metal texture.
-    public static func copyTexture(with texture: MTLTexture) throws -> MTLTexture {
+    public static func copyTexture(with texture: MTLTexture) async throws -> MTLTexture {
         // 纹理最好不要又作为输入纹理又作为输出纹理，否则会出现重复内容，
         // 所以需要拷贝新的纹理来承载新的内容‼️
-        return try TextureLoader.makeTexture(width: texture.width, height: texture.height, options: [
+        return try await TextureLoader.makeTexture(width: texture.width, height: texture.height, options: [
             .texturePixelFormat: texture.pixelFormat,
             .textureUsage: texture.usage,
             .textureSampleCount: texture.sampleCount,
@@ -242,58 +241,42 @@ extension TextureLoader {
 // MARK: - async convert to metal texture.
 extension TextureLoader {
     
-    /// Async convert to metal texture.
-    /// - Parameters:
-    ///   - cgImage: Bitmap image
-    ///   - success: Successful
-    ///   - failed: Failed
-    ///   - options: Dictonary of MTKTextureLoaderOptions.
-    public static func makeTexture(with cgImage: CGImage,
-                                   options: [MTKTextureLoader.Option: Any]? = nil,
-                                   success: @escaping (_ texture: MTLTexture) -> Void,
-                                   failed: ((HarbethError) -> Void)? = nil) {
-        let options = options ?? TextureLoader.defaultOptions
-        guard let loader = Shared.shared.device?.textureLoader else {
-            failed?(HarbethError.textureLoader)
-            return
-        }
-        loader.newTexture(cgImage: cgImage, options: options) { texture, error in
-            if let texture = texture {
-                success(texture)
-            } else if let error = error {
-                failed?(HarbethError.error(error))
+    public static func makeTexture(with cgImage: CGImage, options: [MTKTextureLoader.Option: Any]? = nil) async throws -> MTLTexture {
+        let finalOptions = options ?? TextureLoader.defaultOptions
+        let deviceInstance = await Shared.shared.getInitializedDevice()
+        let loader = deviceInstance.textureLoader
+        return try await Task.withCheckedThrowingContinuation { continuation in
+            loader.newTexture(cgImage: cgImage, options: finalOptions) { texture, error in
+                if let texture = texture {
+                    continuation.resume(returning: texture)
+                } else if let error = error {
+                    continuation.resume(throwing: HarbethError.error(error))
+                } else {
+                    continuation.resume(throwing: HarbethError.textureLoader) // Fallback error
+                }
             }
         }
     }
     
-    public static func makeTexture(with image: C7Image,
-                                   options: [MTKTextureLoader.Option: Any]? = nil,
-                                   success: @escaping (_ texture: MTLTexture) -> Void,
-                                   failed: ((HarbethError) -> Void)? = nil) {
-        let options = options ?? TextureLoader.defaultOptions
+    public static func makeTexture(with image: C7Image, options: [MTKTextureLoader.Option: Any]? = nil) async throws -> MTLTexture {
         guard let cgImage = image.cgImage else {
-            failed?(HarbethError.source2Texture)
-            return
+            throw HarbethError.image2CGImage
         }
-        makeTexture(with: cgImage, options: options, success: success, failed: failed)
+        return try await makeTexture(with: cgImage, options: options)
     }
     
-    public static func makeTexture(with ciImage: CIImage,
-                                   options: [MTKTextureLoader.Option: Any]? = nil,
-                                   success: @escaping (_ texture: MTLTexture) -> Void,
-                                   failed: ((HarbethError) -> Void)? = nil) {
-        let options = options ?? TextureLoader.defaultOptions
+    public static func makeTexture(with ciImage: CIImage, options: [MTKTextureLoader.Option: Any]? = nil) async throws -> MTLTexture {
+        let finalOptions = options ?? TextureLoader.defaultOptions
         let context: CIContext? = {
-            if options.keys.contains(where: { $0 == .sharedContext }) {
-                return options[.sharedContext] as? CIContext
+            if finalOptions.keys.contains(where: { $0 == .sharedContext }) {
+                return finalOptions[.sharedContext] as? CIContext
             }
             return nil
         }()
         guard let cgImage = ciImage.c7.toCGImage(context: context) else {
-            failed?(HarbethError.source2Texture)
-            return
+            throw HarbethError.source2Texture
         }
-        makeTexture(with: cgImage, options: options, success: success, failed: failed)
+        return try await makeTexture(with: cgImage, options: finalOptions)
     }
 }
 

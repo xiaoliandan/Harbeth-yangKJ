@@ -17,68 +17,62 @@ internal struct Compute {
     /// Performance intensive operations should not be invoked frequently
     /// - parameter kernel: Specifies the name of the data parallel computing coloring function
     /// - Returns: MTLComputePipelineState
-    @inlinable static func makeComputePipelineState(with kernel: String) throws -> MTLComputePipelineState {
-        /// 先读取缓存管线
-        if let pipelineState = Shared.shared.device?.pipelines[kernel] {
+    @inlinable static func makeComputePipelineState(with kernel: String) async throws -> MTLComputePipelineState {
+        let sharedActor = Shared.shared // Get actor instance
+        let sharedDeviceInstance = await sharedActor.getInitializedDevice() // Await device
+
+        // Access pipelines on the Device instance.
+        if let pipelineState = sharedDeviceInstance.pipelines[kernel] {
             return pipelineState
         }
-        /// 同步阻塞编译计算程序来创建管道状态
-        let function = try Device.readMTLFunction(kernel)
-        guard let pipeline = try? Device.device().makeComputePipelineState(function: function) else {
+
+        let function = try await Device.readMTLFunction(kernel)
+        // Device.device() is now async, use the already fetched metalDevice from sharedDeviceInstance
+        guard let pipeline = try? sharedDeviceInstance.device.makeComputePipelineState(function: function) else {
             throw HarbethError.computePipelineState(kernel)
         }
-        Shared.shared.device?.pipelines[kernel] = pipeline
+        // pipelines is a var on Device, and Device is a class.
+        // sharedDeviceInstance is a let constant holding the Device reference.
+        sharedDeviceInstance.pipelines[kernel] = pipeline
         return pipeline
     }
     
-    @inlinable static func makeComputePipelineState(with kernel: String, complete: @escaping (Result<MTLComputePipelineState, HarbethError>) -> Void) {
-        /// 先读取缓存管线
-        if let pipelineState = Shared.shared.device?.pipelines[kernel] {
-            complete(.success(pipelineState))
-            return
-        }
-        guard let function = try? Device.readMTLFunction(kernel) else {
-            complete(.failure(HarbethError.readFunction(kernel)))
-            return
-        }
-        /// 异步创建管道状态
-        Device.device().makeComputePipelineState(function: function) { pipelineState, error in
-            guard let pipeline = pipelineState else {
-                complete(.failure(HarbethError.computePipelineState(kernel)))
-                return
-            }
-            complete(.success(pipeline))
-            Shared.shared.device?.pipelines[kernel] = pipeline
-        }
+    // Removed makeComputePipelineState with completion handler
+
+    @inlinable static func makeCommandBuffer() async -> MTLCommandBuffer? {
+        return await Device.commandQueue().makeCommandBuffer()
     }
 }
 
 extension C7FilterProtocol {
     
-    func drawing(with kernel: String, commandBuffer: MTLCommandBuffer, textures: [MTLTexture]) throws -> MTLTexture {
+    func drawing(with kernel: String, commandBuffer: MTLCommandBuffer, textures: [MTLTexture]) async throws -> MTLTexture {
         guard let computeEncoder = commandBuffer.makeComputeCommandEncoder() else {
             throw HarbethError.makeComputeCommandEncoder
         }
-        let pipelineState = try Compute.makeComputePipelineState(with: kernel)
+        let pipelineState = try await Compute.makeComputePipelineState(with: kernel)
         
         return encoding(computeEncoder: computeEncoder, pipelineState: pipelineState, textures: textures)
     }
     
-    func drawing(with kernel: String, commandBuffer: MTLCommandBuffer, textures: [MTLTexture], complete: @escaping (Result<MTLTexture, HarbethError>) -> Void) {
-        guard let computeEncoder = commandBuffer.makeComputeCommandEncoder() else {
-            complete(.failure(HarbethError.makeComputeCommandEncoder))
-            return
-        }
-        Compute.makeComputePipelineState(with: kernel) { res in
-            switch res {
-            case .success(let pipelineState):
-                let destTexture = encoding(computeEncoder: computeEncoder, pipelineState: pipelineState, textures: textures)
-                complete(.success(destTexture))
-            case .failure(let error):
-                complete(.failure(error))
-            }
-        }
-    }
+    // This completion handler version should be removed or updated to use async internally.
+    // For this refactoring, as per similar changes, we remove it.
+    // If it were to be kept and updated:
+    // func drawing(with kernel: String, commandBuffer: MTLCommandBuffer, textures: [MTLTexture], complete: @escaping (Result<MTLTexture, HarbethError>) -> Void) {
+    //     Task {
+    //         do {
+    //             guard let computeEncoder = commandBuffer.makeComputeCommandEncoder() else {
+    //                 complete(.failure(HarbethError.makeComputeCommandEncoder))
+    //                 return
+    //             }
+    //             let pipelineState = try await Compute.makeComputePipelineState(with: kernel)
+    //             let destTexture = encoding(computeEncoder: computeEncoder, pipelineState: pipelineState, textures: textures)
+    //             complete(.success(destTexture))
+    //         } catch {
+    //             complete(.failure(error as? HarbethError ?? HarbethError.unknown))
+    //         }
+    //     }
+    // }
     
     private func encoding(computeEncoder: MTLComputeCommandEncoder, pipelineState: MTLComputePipelineState, textures: [MTLTexture]) -> MTLTexture {
         if case .compute(let kernel) = self.modifier {

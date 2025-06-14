@@ -131,14 +131,24 @@ extension HarbethWrapper where Base: CVPixelBuffer {
     /// - Parameters:
     ///   - textureCache: The texture cache object that will manage the texture. Only the real machine used.
     /// - Returns: Metal texture.
-    public func toMTLTexture(textureCache: CVMetalTextureCache? = nil) -> MTLTexture? {
-        let texture: MTLTexture?
+    public func toMTLTexture(textureCache: CVMetalTextureCache? = nil) async -> MTLTexture? {
+        var texture: MTLTexture? // Changed to var for conditional assignment
         #if targetEnvironment(simulator)
         // The simulator needs to be fixed to `rgba8Unorm`.
         let pixelFormat: MTLPixelFormat = .rgba8Unorm
-        texture = base.c7.toCGImage()?.c7.toTexture(pixelFormat: pixelFormat)
+        if let cgImg = base.c7.toCGImage() {
+            texture = await cgImg.c7.toTexture(pixelFormat: pixelFormat)
+        } else {
+            texture = nil
+        }
         #else
-        texture = base.c7.convert2MTLTexture(textureCache: textureCache ?? Device.sharedTextureCache())
+        let cacheToUse: CVMetalTextureCache?
+        if let providedCache = textureCache {
+            cacheToUse = providedCache
+        } else {
+            cacheToUse = await Device.sharedTextureCache()
+        }
+        texture = base.c7.convert2MTLTexture(textureCache: cacheToUse)
         #endif
         return texture
     }
