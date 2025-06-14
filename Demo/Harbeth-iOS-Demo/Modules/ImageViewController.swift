@@ -13,6 +13,7 @@ class ImageViewController: UIViewController {
     var callback: FilterCallback?
     var originImage: UIImage!
     weak var timer: Timer?
+    private var timerShouldAddValue: Bool = true
     lazy var autoBarButton: UIBarButtonItem = {
         let barButton = UIBarButtonItem(title: "Auto",
                                         style: .plain,
@@ -158,33 +159,45 @@ extension ImageViewController {
     @objc func autoTestAction() {
         if slider.isHidden { return }
         
-        if let _ = timer {
+        if let existingTimer = self.timer {
             autoBarButton.title = "Auto"
-            timer?.invalidate()
-            timer = nil
+            existingTimer.invalidate()
+            self.timer = nil
         } else {
             autoBarButton.title = "Stop"
-            var add = true
-            let timer = Timer(timeInterval: 0.025, repeats: true, block: { [weak self] _ in
-                guard let `self` = self else { return }
-                if self.slider.value >= self.slider.maximumValue {
-                    add = false
-                    //self.slider.value = self.slider.minimumValue
-                } else if self.slider.value <= self.slider.minimumValue {
-                    add = true
+            if self.slider.value >= self.slider.maximumValue {
+                self.timerShouldAddValue = false
+            } else if self.slider.value <= self.slider.minimumValue {
+                self.timerShouldAddValue = true
+            }
+
+            let newTimer = Timer(timeInterval: 0.025, repeats: true, block: { [weak self] _ in
+                Task { @MainActor in
+                    guard let self = self else { return }
+
+                    if self.slider.value >= self.slider.maximumValue {
+                        self.timerShouldAddValue = false
+                    } else if self.slider.value <= self.slider.minimumValue {
+                        self.timerShouldAddValue = true
+                    }
+
+                    let step = (self.slider.maximumValue - self.slider.minimumValue) / 77
+                    if self.timerShouldAddValue {
+                        self.slider.value += step
+                    } else {
+                        self.slider.value -= step
+                    }
+                    // Clamp slider value
+                    self.slider.value = max(self.slider.minimumValue, min(self.slider.value, self.slider.maximumValue))
+
+                    self.currentLabel.text = String(format: "%.2f", self.slider.value)
+                    let filter = self.callback?(self.slider.value)
+                    self.asynchronousProcessingImage(with: filter)
                 }
-                if add {
-                    self.slider.value += (self.slider.maximumValue - self.slider.minimumValue) / 77
-                } else {
-                    self.slider.value -= (self.slider.maximumValue - self.slider.minimumValue) / 77
-                }
-                self.currentLabel.text = String(format: "%.2f", self.slider.value)
-                let filter = self.callback?(self.slider.value)
-                self.asynchronousProcessingImage(with: filter)
             })
-            RunLoop.current.add(timer, forMode: .common)
-            timer.fire()
-            self.timer = timer
+            RunLoop.main.add(newTimer, forMode: .common)
+            newTimer.fire()
+            self.timer = newTimer
         }
     }
     
