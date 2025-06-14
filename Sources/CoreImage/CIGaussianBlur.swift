@@ -8,7 +8,7 @@
 import Foundation
 import CoreImage
 
-public struct CIGaussianBlur: CoreImageProtocol {
+public struct CIGaussianBlur: CoreImageProtocol, Sendable {
     
     public static let range: ParameterRange<Float, Self> = .init(min: 0, max: 100, value: 10.0)
     

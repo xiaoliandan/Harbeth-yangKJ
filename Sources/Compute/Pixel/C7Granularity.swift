@@ -8,7 +8,7 @@
 import Foundation
 
 /// 调节胶片颗粒感
-public struct C7Granularity: C7FilterProtocol {
+public struct C7Granularity: C7FilterProtocol, Sendable {
     
     public static let range: ParameterRange<Float, Self> = .init(min: 0.0, max: 0.5, value: 0.3)
     

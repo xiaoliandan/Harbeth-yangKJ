@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct C7Size {
+public struct C7Size: Sendable {
     
     public static let zero = C7Size(width: 0, height: 0)
     

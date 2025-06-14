@@ -8,7 +8,7 @@
 import Foundation
 
 /// 基于色温调整白平衡
-public struct C7WhiteBalance: C7FilterProtocol {
+public struct C7WhiteBalance: C7FilterProtocol, Sendable {
     
     public static let range: ParameterRange<Float, Self> = .init(min: 4000, max: 7000, value: 5000)
     

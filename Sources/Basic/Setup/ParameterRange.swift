@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct ParameterRange<T: Comparable, Target> {
+public struct ParameterRange<T: Comparable, Target>: Sendable where T: Sendable, Target: Sendable {
     
     public let min: T
     public let max: T

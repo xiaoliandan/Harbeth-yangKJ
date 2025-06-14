@@ -28,10 +28,10 @@ public protocol Renderable: AnyObject {
     func setupOutputDest(_ dest: MTLTexture)
 }
 
-fileprivate var C7ATRenderableSetFiltersContext: UInt8 = 0
-fileprivate var C7ATRenderableInputSourceContext: UInt8 = 0
-fileprivate var C7ATRenderableTransmitOutputRealTimeCommitContext: UInt8 = 0
-fileprivate var C7ATRenderableKeepAroundForSynchronousRenderContext: UInt8 = 0
+fileprivate let C7ATRenderableSetFiltersContext: UInt8 = 0
+fileprivate let C7ATRenderableInputSourceContext: UInt8 = 0
+fileprivate let C7ATRenderableTransmitOutputRealTimeCommitContext: UInt8 = 0
+fileprivate let C7ATRenderableKeepAroundForSynchronousRenderContext: UInt8 = 0
 
 extension Renderable {
     public var filters: [C7FilterProtocol] {
@@ -129,7 +129,7 @@ extension Renderable {
     }
 }
 
-fileprivate var C7ATRenderableLockedSourceContext: UInt8 = 0
+fileprivate let C7ATRenderableLockedSourceContext: UInt8 = 0
 
 extension Renderable {
     var lockedSource: Bool {

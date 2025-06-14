@@ -9,7 +9,7 @@ import Foundation
 
 /// 均值模糊效果
 /// https://docs.gimp.org/2.10/en/gimp-filter-median-blur.html
-public struct C7MeanBlur: C7FilterProtocol {
+public struct C7MeanBlur: C7FilterProtocol, Sendable {
     
     public static let range: ParameterRange<Float, Self> = .init(min: 0, max: 100, value: 10)
     
