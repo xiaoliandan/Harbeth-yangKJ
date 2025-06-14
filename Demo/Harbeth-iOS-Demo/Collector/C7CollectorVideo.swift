@@ -9,7 +9,7 @@ import Foundation
 import AVFoundation
 import Harbeth
 
-public final class C7CollectorVideo: C7Collector {
+@MainActor public final class C7CollectorVideo: C7Collector {
     
     private var player: AVPlayer!
     public private(set) var videoOutput: AVPlayerItemVideoOutput!
@@ -50,10 +50,7 @@ extension C7CollectorVideo {
     
     func setupPlayer(_ player: AVPlayer) {
         if let currentItem = player.currentItem {
-            let localVideoOutput = self.videoOutput
-            DispatchQueue.main.async {
-                currentItem.add(localVideoOutput!)
-            }
+            currentItem.add(self.videoOutput!)
         }
     }
     
