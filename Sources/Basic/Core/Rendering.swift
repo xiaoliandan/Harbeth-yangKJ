@@ -12,13 +12,13 @@ internal struct Rendering {
     public static let kOneInputVertex: String = "oneInputVertex"
     public static let kTwoInputVertex: String = "twoInputVertex"
     
-    static func makeRenderPipelineState(with vertex: String, fragment: String) throws -> MTLRenderPipelineState {
+    static func makeRenderPipelineState(with vertex: String, fragment: String) async throws -> MTLRenderPipelineState {
         let descriptor = MTLRenderPipelineDescriptor()
         descriptor.colorAttachments[0].pixelFormat = MTLPixelFormat.bgra8Unorm
         descriptor.rasterSampleCount = 1
-        descriptor.vertexFunction = try Device.readMTLFunction(vertex)
-        descriptor.fragmentFunction = try Device.readMTLFunction(fragment)
-        guard let pipelineState = try? Device.device().makeRenderPipelineState(descriptor: descriptor) else {
+        descriptor.vertexFunction = try await Device.readMTLFunction(vertex)
+        descriptor.fragmentFunction = try await Device.readMTLFunction(fragment)
+        guard let pipelineState = try? (await Device.device()).makeRenderPipelineState(descriptor: descriptor) else {
             throw HarbethError.renderPipelineState(vertex, fragment)
         }
         return pipelineState
@@ -27,7 +27,7 @@ internal struct Rendering {
     static func drawingProcess(_ pipelineState: MTLRenderPipelineState,
                                commandBuffer: MTLCommandBuffer,
                                texture: MTLTexture,
-                               filter: C7FilterProtocol) {
+                               filter: C7FilterProtocol) async {
         let renderPass = MTLRenderPassDescriptor()
         renderPass.colorAttachments[0].texture = texture
         renderPass.colorAttachments[0].loadAction = MTLLoadAction.clear
@@ -38,7 +38,7 @@ internal struct Rendering {
             HarbethError.failed("Could not create render encoder")
             return
         }
-        let device = Device.device()
+        let device = await Device.device()
         let size = MemoryLayout<Float>.size
         
         renderEncoder.setFrontFacing(MTLWinding.counterClockwise)
