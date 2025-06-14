@@ -30,21 +30,21 @@ extension Cacheable {
     public var textureCache: CVMetalTextureCache? {
         get {
             return synchronizedCacheable {
-                if let object = objc_getAssociatedObject(self, &C7ATCacheContext) {
+                if let object = objc_getAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATCacheContext) + 1)!) {
                     return (object as! CVMetalTextureCache)
                 } else {
                     var textureCache: CVMetalTextureCache?
                     #if !targetEnvironment(simulator)
                     CVMetalTextureCacheCreate(kCFAllocatorDefault, nil, Device.device(), nil, &textureCache)
                     #endif
-                    objc_setAssociatedObject(self, &C7ATCacheContext, textureCache, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+                    objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATCacheContext) + 1)!, textureCache, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
                     return textureCache
                 }
             }
         }
         set {
             synchronizedCacheable {
-                objc_setAssociatedObject(self, &C7ATCacheContext, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+                objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATCacheContext) + 1)!, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             }
         }
     }
