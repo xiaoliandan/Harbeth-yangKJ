@@ -15,7 +15,7 @@ enum ViewType {
 struct HomeViewModel {
     var viewType: ViewType
     
-    func setupViewController(_ type: ViewControllerType) -> UIViewController {
+    @MainActor func setupViewController(_ type: ViewControllerType) -> UIViewController {
         switch viewType {
         case .image:
             let vc = ImageViewController()

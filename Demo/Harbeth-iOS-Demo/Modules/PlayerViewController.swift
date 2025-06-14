@@ -75,11 +75,13 @@ class PlayerViewController: UIViewController {
 }
 
 extension PlayerViewController: C7CollectorImageDelegate {
-    func preview(_ collector: C7Collector, fliter image: C7Image) {
-        self.originImageView.image = image
+    nonisolated func preview(_ collector: C7Collector, fliter image: C7Image) {
+        Task { @MainActor in
+            self.originImageView.image = image
         // Simulated dynamic effect.
         if let filter = self.tuple?.callback?(self.nextTime) {
             self.video.filters = [filter]
+        }
         }
     }
 }

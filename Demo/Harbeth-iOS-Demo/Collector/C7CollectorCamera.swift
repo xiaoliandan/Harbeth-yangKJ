@@ -44,8 +44,11 @@ public final class C7CollectorCamera: C7Collector {
         if captureSession.canAddOutput(output) {
             captureSession.addOutput(output)
         }
-        if let xx = output.connection(with: .video), xx.isVideoOrientationSupported {
-            xx.videoOrientation = .portrait
+        if let connection = output.connection(with: .video) {
+            let desiredRotationAngle: CGFloat = 90 // For portrait
+            if connection.isVideoRotationAngleSupported(desiredRotationAngle) {
+                connection.videoRotationAngle = desiredRotationAngle
+            }
         }
         return output
     }()

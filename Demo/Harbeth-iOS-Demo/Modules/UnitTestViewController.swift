@@ -68,7 +68,12 @@ class UnitTestViewController: UIViewController {
         if mourning {
             self.overlay.removeFromSuperview()
         } else {
-            UIApplication.shared.windows.first(where: { $0.isKeyWindow })?.addSubview(overlay)
+            let keyWindow = UIApplication.shared.connectedScenes
+                .filter({ $0.activationState == .foregroundActive })
+                .compactMap({ $0 as? UIWindowScene })
+                .first?.windows
+                .first(where: { $0.isKeyWindow })
+            keyWindow?.addSubview(overlay)
         }
         self.mourning = !self.mourning
     }
