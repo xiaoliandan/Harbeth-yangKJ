@@ -29,7 +29,10 @@ import Harbeth
     
     public override func setupInit() {
         super.setupInit()
-        setupVideoOutput()
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            self.setupVideoOutput()
+        }
     }
 }
 
