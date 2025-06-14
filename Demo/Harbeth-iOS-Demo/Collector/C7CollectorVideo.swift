@@ -9,19 +9,25 @@ import Foundation
 import AVFoundation
 import Harbeth
 
-@MainActor public final class C7CollectorVideo: C7Collector {
+// Note: @unchecked Sendable is used because this class manages AVFoundation objects (AVPlayer, AVPlayerItemVideoOutput),
+// a CADisplayLink, and interacts with delegate patterns. Thread safety for main-thread
+// operations is managed by explicit DispatchQueue.main.async calls.
+public final class C7CollectorVideo: C7Collector, @unchecked Sendable {
     
     private var player: AVPlayer!
     public private(set) var videoOutput: AVPlayerItemVideoOutput!
     
     lazy var displayLink: CADisplayLink = {
-        let displayLink = CADisplayLink(target: self, selector: #selector(readBuffer(_:)))
-        displayLink.add(to: .current, forMode: RunLoop.Mode.default)
-        displayLink.isPaused = true
-        return displayLink
+        let dl = CADisplayLink(target: self, selector: #selector(readBuffer(_:)))
+        // Ensure 'add' and initial 'isPaused' state are set on the main thread.
+        DispatchQueue.main.async {
+            dl.add(to: .main, forMode: .default)
+            dl.isPaused = true
+        }
+        return dl
     }()
     
-    @MainActor public convenience init(player: AVPlayer, delegate: C7CollectorImageDelegate) {
+    public convenience init(player: AVPlayer, delegate: C7CollectorImageDelegate) {
         self.init(delegate: delegate)
         self.player = player
         setupPlayer(player)
@@ -39,13 +45,17 @@ import Harbeth
 extension C7CollectorVideo {
     
     public func play() {
-        player.play()
-        displayLink.isPaused = false
+        player.play() // AVPlayer.play() is thread-safe
+        DispatchQueue.main.async { [weak self] in
+            self?.displayLink.isPaused = false
+        }
     }
     
     public func pause() {
-        player.pause()
-        displayLink.isPaused = true
+        player.pause() // AVPlayer.pause() is thread-safe
+        DispatchQueue.main.async { [weak self] in
+            self?.displayLink.isPaused = true
+        }
     }
 }
 
@@ -53,7 +63,15 @@ extension C7CollectorVideo {
     
     func setupPlayer(_ player: AVPlayer) {
         if let currentItem = player.currentItem {
-            currentItem.add(self.videoOutput!)
+            // videoOutput might be nil here if setupVideoOutput's async block from setupInit hasn't run.
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                if let videoOutput = self.videoOutput {
+                    currentItem.add(videoOutput)
+                } else {
+                    print("C7CollectorVideo: videoOutput not yet initialized in setupPlayer's async block when trying to add to AVPlayerItem.")
+                }
+            }
         }
     }
     
