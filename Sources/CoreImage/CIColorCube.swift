@@ -24,13 +24,13 @@ public struct CIColorCube: CoreImageProtocol {
         return .coreimage(CIName: "CIColorCubeWithColorSpace")
     }
     
-    public func coreImageApply(filter: CIFilter, input ciImage: CIImage) throws -> CIImage {
+    public func coreImageApply(filter: CIFilter, input ciImage: CIImage) async throws -> CIImage {
         guard let cubeResource = cubeResource else {
             throw HarbethError.cubeResource
         }
         filter.setValue(cubeResource.data, forKey: "inputCubeData")
         filter.setValue(cubeResource.dimension, forKey: "inputCubeDimension")
-        filter.setValue(Device.colorSpace(), forKey: "inputColorSpace")
+        filter.setValue(await Device.colorSpace(), forKey: "inputColorSpace")
         return ciImage
     }
     

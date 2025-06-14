@@ -139,7 +139,7 @@ public protocol CoreImageProtocol: C7FilterProtocol {
     ///   - filter: CoreImage CIFilter.
     ///   - ciImage: Input source
     /// - Returns: Output source
-    func coreImageApply(filter: CIFilter, input ciImage: CIImage) throws -> CIImage
+    func coreImageApply(filter: CIFilter, input ciImage: CIImage) async throws -> CIImage
 }
 
 public protocol CIImageDisplaying: CoreImageProtocol {
@@ -152,7 +152,7 @@ extension CoreImageProtocol {
         false
     }
     
-    public func coreImageApply(filter: CIFilter, input ciImage: CIImage) throws -> CIImage {
+    public func coreImageApply(filter: CIFilter, input ciImage: CIImage) async throws -> CIImage {
         return ciImage
     }
 }
