@@ -1,3 +1,4 @@
+@preconcurrency import Metal
 //
 //  Renderable.swift
 //  Harbeth

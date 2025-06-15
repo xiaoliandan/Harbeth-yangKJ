@@ -1,3 +1,4 @@
+@preconcurrency import Metal
 //
 //  HarbethView.swift
 //  Harbeth
@@ -52,7 +53,7 @@ public struct HarbethView<Content>: View where Content: View {
         }
     }
     
-    private func setup(input: HarbethViewInput) async {
+    @MainActor private func setup(input: HarbethViewInput) async {
         guard !input.filters.isEmpty, let texture = input.texture else {
             // If no filters or no texture, ensure placeholder is shown or handle appropriately.
             // This might involve setting source.source to input.placeholder if it wasn't already.
