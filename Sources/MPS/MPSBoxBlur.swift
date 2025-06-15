@@ -35,7 +35,7 @@ public struct MPSBoxBlur: MPSKernelProtocol, @unchecked Sendable {
     
     private var boxBlur: MPSImageBox
     
-    @MainActor public init(radius: Float = MPSBoxBlur.range.value) async {
+    public init(radius: Float = MPSBoxBlur.range.value) async {
         self.metalDevice = await Device.device()
         let kernelSize = MPSBoxBlur.roundToOdd(radius)
         self.boxBlur = MPSImageBox(device: self.metalDevice, kernelWidth: kernelSize, kernelHeight: kernelSize)

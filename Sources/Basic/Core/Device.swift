@@ -146,15 +146,13 @@ extension Device {
 
 extension Device {
     
-    // Required by Cacheable, or if Device.sharedTextureCache() needs it.
-    // This provides access to the actor's textureCache property.
-    public func getTextureCache() async -> CVMetalTextureCache? {
-        return self.textureCache
-    }
-
     // Mutating func to update contexts dictionary
     func setContext(_ context: CIContext, for key: CGColorSpace) {
         self.contexts[key] = context
+    }
+
+    public func getCachedContext(for colorSpace: CGColorSpace) -> CIContext? {
+        return contexts[colorSpace]
     }
 
     // Add to public actor Device scope
@@ -208,7 +206,7 @@ extension Device {
         return mtlTexture
     }
 
-    @MainActor public static func device() async -> MTLDevice {
+    public static func device() async -> MTLDevice {
         let dActor = await Shared.shared.getInitializedDevice()
         return await dActor.device
     }
@@ -225,7 +223,7 @@ extension Device {
         return CGBitmapInfo.byteOrder32Big.rawValue | CGImageAlphaInfo.premultipliedLast.rawValue
     }
     
-    @MainActor public static func commandQueue() async -> MTLCommandQueue {
+    public static func commandQueue() async -> MTLCommandQueue {
         let dActor = await Shared.shared.getInitializedDevice()
         return await dActor.commandQueue
     }
@@ -247,8 +245,8 @@ extension Device {
     
     @MainActor public static func context(colorSpace: CGColorSpace) async -> CIContext {
         let deviceActor = await Shared.shared.getInitializedDevice()
-        if let context = await deviceActor.contexts[colorSpace] {
-            return context
+        if let cachedContext = await deviceActor.getCachedContext(for: colorSpace) {
+            return cachedContext
         }
         var options: [CIContextOption : Any] = [
             CIContextOption.outputColorSpace: colorSpace,

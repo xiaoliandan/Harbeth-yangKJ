@@ -12,7 +12,7 @@ internal struct Rendering {
     public static let kOneInputVertex: String = "oneInputVertex"
     public static let kTwoInputVertex: String = "twoInputVertex"
     
-    @MainActor static func makeRenderPipelineState(with vertex: String, fragment: String) async throws -> MTLRenderPipelineState {
+    static func makeRenderPipelineState(with vertex: String, fragment: String) async throws -> MTLRenderPipelineState {
         let descriptor = MTLRenderPipelineDescriptor()
         descriptor.colorAttachments[0].pixelFormat = MTLPixelFormat.bgra8Unorm
         descriptor.rasterSampleCount = 1
@@ -25,7 +25,7 @@ internal struct Rendering {
         return pipelineState
     }
     
-    @MainActor static func drawingProcess(_ pipelineState: MTLRenderPipelineState,
+    static func drawingProcess(_ pipelineState: MTLRenderPipelineState,
                                commandBuffer: MTLCommandBuffer,
                                texture: MTLTexture,
                                filter: C7FilterProtocol) async {

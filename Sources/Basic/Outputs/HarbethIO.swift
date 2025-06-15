@@ -176,9 +176,7 @@ extension HarbethIO {
                 // textureIO is now async
                 inTexture = try await textureIO(with: inTexture, filter: filter, for: commandBuffer)
             }
-            // This might need to change if commitAndWaitUntilCompleted has an async alternative
-            // or if the overall flow becomes fully async. For now, keeping as is.
-            commandBuffer.commitAndWaitUntilCompleted()
+            try await asyncCommit(commandBuffer: commandBuffer)
         }
         return inTexture
     }
@@ -252,6 +250,22 @@ extension HarbethIO {
 // MARK: - private methods
 extension HarbethIO {
     
+    private func asyncCommit(commandBuffer: MTLCommandBuffer) async throws {
+        // Using HarbethError.error(Error) or a specific case if available would be better.
+        // For now, rethrowing the original error.
+        enum CommitError: Error { case unknown } // Placeholder, ideally use HarbethError
+        return try await withCheckedThrowingContinuation { continuation in
+            commandBuffer.addCompletedHandler { buffer in
+                if let error = buffer.error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume(returning: ())
+                }
+            }
+            commandBuffer.commit()
+        }
+    }
+
     /// The default setting for MTLPixelFormat is rgba8Unorm.
     private var rgba8UnormTexture: Bool {
         switch element {
@@ -296,7 +310,7 @@ extension HarbethIO {
     /// Do you need to create a new metal texture command buffer.
     /// - Parameter buffer: Old command buffer.
     /// - Returns: A command buffer.
-    @MainActor private func makeCommandBuffer(for buffer: MTLCommandBuffer? = nil) async throws -> MTLCommandBuffer {
+    private func makeCommandBuffer(for buffer: MTLCommandBuffer? = nil) async throws -> MTLCommandBuffer {
         if let commandBuffer = buffer {
             return commandBuffer
         }

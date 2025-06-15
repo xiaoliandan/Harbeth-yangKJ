@@ -46,7 +46,7 @@ public struct MPSHistogram: MPSKernelProtocol, @unchecked Sendable {
     private var histogram: MPSImageHistogram
     private var equalization: MPSImageHistogramEqualization
     
-    @MainActor public init(histogramEntries: Int = MPSHistogram.range.value) async {
+    public init(histogramEntries: Int = MPSHistogram.range.value) async {
         self.metalDevice = await Device.device()
         var histogramInfo = MPSHistogram.createMPSImageHistogramInfo(histogramEntries)
         self.histogram = MPSImageHistogram(device: self.metalDevice, histogramInfo: &histogramInfo)
