@@ -158,10 +158,10 @@ extension HarbethWrapper where Base: CVPixelBuffer {
     ///   - pixelFormat: Specifies the Metal pixel format.
     ///   - planeIndex: Specifies the plane of the CVImageBuffer to map bind.  Ignored for non-planar CVImageBuffers.
     /// - Returns: New metal texture.
-    public func createMTLTexture(pixelFormat: MTLPixelFormat = .bgra8Unorm, planeIndex: Int = 0) throws -> MTLTexture {
+    public func createMTLTexture(pixelFormat: MTLPixelFormat = .bgra8Unorm, planeIndex: Int = 0) async throws -> MTLTexture {
         let width  = CVPixelBufferGetWidthOfPlane(self.base, planeIndex)
         let height = CVPixelBufferGetHeightOfPlane(self.base, planeIndex)
-        let texture = try TextureLoader.makeTexture(width: width, height: height, options: [
+        let texture = try await TextureLoader.makeTexture(width: width, height: height, options: [
             .texturePixelFormat: pixelFormat
         ])
         base.c7.copyToPixelBuffer(with: texture)

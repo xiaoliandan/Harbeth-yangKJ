@@ -42,9 +42,9 @@ public struct C7CombinationBilateralBlur: C7FilterProtocol {
         self.firstBlur.offect = C7Point2D(x: stepOffset, y: 0)
     }
     
-    public func combinationBegin(for buffer: MTLCommandBuffer, source texture: MTLTexture, dest texture2: MTLTexture) throws -> MTLTexture {
-        let destTexture = try TextureLoader.copyTexture(with: texture2)
-        _ = try firstBlur.applyAtTexture(form: texture, to: texture2, for: buffer)
+    public func combinationBegin(for buffer: MTLCommandBuffer, source texture: MTLTexture, dest texture2: MTLTexture) async throws -> MTLTexture {
+        let destTexture = try await TextureLoader.copyTexture(with: texture2)
+        _ = try await firstBlur.applyAtTexture(form: texture, to: texture2, for: buffer)
         return destTexture
     }
 }

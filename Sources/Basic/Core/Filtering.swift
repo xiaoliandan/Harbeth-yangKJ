@@ -66,7 +66,7 @@ public protocol C7FilterProtocol: Mirrorable {
     ///   - texture: Original input texture.
     ///   - texture2: The final output texture, This parameter is mainly provided for copied new textures to use.
     /// - Returns: A new texture with copied to dest.
-    func combinationBegin(for buffer: MTLCommandBuffer, source texture: MTLTexture, dest texture2: MTLTexture) throws -> MTLTexture
+    func combinationBegin(for buffer: MTLCommandBuffer, source texture: MTLTexture, dest texture2: MTLTexture) async throws -> MTLTexture
     
     /// Combination output metal texture, support `compute`, `render` and `mps` type.
     /// - Parameters:
@@ -89,7 +89,7 @@ extension C7FilterProtocol {
     /// Special type of parameter factor, such as 4x4 matrix.
     public func setupSpecialFactors(for encoder: MTLCommandEncoder, index: Int) { }
     /// If you need to replace the subsequent input source texture, return to a new texture with copied to dest.
-    public func combinationBegin(for buffer: MTLCommandBuffer, source texture: MTLTexture, dest texture2: MTLTexture) throws -> MTLTexture {
+    public func combinationBegin(for buffer: MTLCommandBuffer, source texture: MTLTexture, dest texture2: MTLTexture) async throws -> MTLTexture {
         return texture
     }
     /// Combination output metal texture, support `compute`, `render` and `mps` type.
