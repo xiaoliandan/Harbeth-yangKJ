@@ -25,14 +25,17 @@ public protocol Cacheable: AnyObject {
 // fileprivate let C7ATCacheContext: UInt8 = 0
 // fileprivate let textureCacheKey = UnsafeRawPointer(bitPattern: Int(C7ATCacheContext) + 1)!
 private enum AssociatedKeys {
-    static var textureCache: Void? = nil
+    static let textureCache = "harbeth.textureCacheKey"
 }
 
 extension Cacheable {
     
     public func deferTextureCache() {
         let existingCache = synchronizedCacheable { // Keep sync access for defer
-            objc_getAssociatedObject(self, &AssociatedKeys.textureCache) as? CVMetalTextureCache
+            if let object = objc_getAssociatedObject(self, AssociatedKeys.textureCache) {
+                return object as! CVMetalTextureCache // Warning suggests this cast will succeed if object is non-nil
+            }
+            return nil
         }
         #if !targetEnvironment(simulator)
         if let textureCache = existingCache {

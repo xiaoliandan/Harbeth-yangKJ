@@ -345,7 +345,7 @@ extension HarbethIO {
         default:
             return texture
         }
-        let outputTexture = try await filter.combinationAfter(for: commandBuffer, input: destTexture, source: texture)
+        let outputTexture = try filter.combinationAfter(for: commandBuffer, input: destTexture, source: texture)
         if hasCoreImage {
             // This might need to change if commitAndWaitUntilCompleted has an async alternative
             // or if the overall flow becomes fully async. For now, keeping as is.
