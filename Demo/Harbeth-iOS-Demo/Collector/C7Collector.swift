@@ -59,40 +59,50 @@ public class C7Collector: NSObject, Cacheable, @unchecked Sendable {
     }
     
     open func setupInit() {
-        let _ = self.textureCache
+        // Pre-warm the texture cache asynchronously.
+        Task {
+            let _ = await self.getTextureCache()
+        }
     }
 }
 
 extension C7Collector {
     
-    func pixelBuffer2Image(_ pixelBuffer: CVPixelBuffer?) -> C7Image? {
+    func pixelBuffer2Image(_ pixelBuffer: CVPixelBuffer?) async -> C7Image? {
         guard let pixelBuffer = pixelBuffer else {
             return nil
         }
         delegate?.captureOutput?(self, pixelBuffer: pixelBuffer)
-        let texture = pixelBuffer.c7.toMTLTexture(textureCache: textureCache)
-        let dest = HarbethIO(element: texture, filters: filters)
-        guard let texture = try? dest.output() else {
+        // Get texture cache asynchronously
+        guard let cache = await getTextureCache(),
+              let texture = pixelBuffer.c7.toMTLTexture(textureCache: cache) else {
             return nil
         }
-        delegate?.captureOutput?(self, texture: texture)
-        return texture.c7.toImage()
+        let dest = HarbethIO(element: texture, filters: filters)
+        // dest.output() is now async
+        guard let outputTexture = try? await dest.output() else {
+            return nil
+        }
+        delegate?.captureOutput?(self, texture: outputTexture)
+        return outputTexture.c7.toImage()
     }
     
-    func processing(with pixelBuffer: CVPixelBuffer?) {
+    func processing(with pixelBuffer: CVPixelBuffer?) async {
         guard let pixelBuffer = pixelBuffer else {
             return
         }
         delegate?.captureOutput?(self, pixelBuffer: pixelBuffer)
-        guard let texture = pixelBuffer.c7.toMTLTexture(textureCache: textureCache) else {
+        // Get texture cache asynchronously
+        guard let cache = await getTextureCache(),
+              let texture = pixelBuffer.c7.toMTLTexture(textureCache: cache) else {
             return
         }
+
         var dest = HarbethIO(element: texture, filters: filters)
-        dest.transmitOutputRealTimeCommit = true
-        dest.transmitOutput(success: { [weak self] desTexture in
-            guard let `self` = self else {
-                return
-            }
+        dest.transmitOutputRealTimeCommit = true // This property might need re-evaluation with fully async pipeline
+
+        do {
+            let desTexture = try await dest.output() // Use the new async output method
             self.delegate?.captureOutput?(self, texture: desTexture)
             guard var image = desTexture.c7.toImage() else {
                 return
@@ -100,9 +110,15 @@ extension C7Collector {
             if self.autoCorrectDirection {
                 image = image.c7.fixOrientation()
             }
-            DispatchQueue.main.async {
+            // Switch to main actor for UI updates if delegate methods require it
+            // Assuming delegate methods are designed to be called from any thread initially,
+            // but UI updates must be on main.
+            await MainActor.run {
                 self.delegate?.preview(self, fliter: image)
             }
-        })
+        } catch {
+            // Handle or log error from dest.output()
+            print("Error processing texture: \(error)")
+        }
     }
 }

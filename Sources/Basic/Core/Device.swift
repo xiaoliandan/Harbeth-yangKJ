@@ -156,7 +156,7 @@ extension Device {
     
     public static func sharedTextureCache() async -> CVMetalTextureCache? {
         let d = await Shared.shared.getInitializedDevice()
-        return d.textureCache
+        return await d.getTextureCache()
     }
     
     public static func context() async -> CIContext {

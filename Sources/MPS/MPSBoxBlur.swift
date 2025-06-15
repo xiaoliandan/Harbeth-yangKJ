@@ -26,7 +26,7 @@ public struct MPSBoxBlur: MPSKernelProtocol, @unchecked Sendable {
         return .mps(performance: self.boxBlur)
     }
     
-    public func encode(commandBuffer: MTLCommandBuffer, textures: [MTLTexture]) throws -> MTLTexture {
+    public func encode(commandBuffer: MTLCommandBuffer, textures: [MTLTexture]) async throws -> MTLTexture {
         let destinationTexture = textures[0]
         let sourceTexture = textures[1]
         self.boxBlur.encode(commandBuffer: commandBuffer, sourceTexture: sourceTexture, destinationTexture: destinationTexture)

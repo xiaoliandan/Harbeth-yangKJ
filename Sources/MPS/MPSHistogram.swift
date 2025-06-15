@@ -28,7 +28,7 @@ public struct MPSHistogram: MPSKernelProtocol, @unchecked Sendable {
         return .mps(performance: self.histogram)
     }
     
-    public func encode(commandBuffer: MTLCommandBuffer, textures: [MTLTexture]) throws -> MTLTexture {
+    public func encode(commandBuffer: MTLCommandBuffer, textures: [MTLTexture]) async throws -> MTLTexture {
         let destinationTexture = textures[0]
         let sourceTexture = textures[1]
         let bufferLength = histogram.histogramSize(forSourceFormat: sourceTexture.pixelFormat)
