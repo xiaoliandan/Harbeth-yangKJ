@@ -1,3 +1,4 @@
+@preconcurrency import Metal
 //
 //  Device.swift
 //  Harbeth
@@ -7,9 +8,13 @@
 
 import Foundation
 import MetalKit
+import VideoToolbox
 
 /// Global public information
-public final class Device: Cacheable {
+public actor Device: Cacheable {
+
+    // TextureCache
+    var textureCache: CVMetalTextureCache?
     
     /// Device information to create other objects
     /// MTLDevice creation is expensive, time-consuming, and can be used forever, so you only need to create it once
@@ -42,6 +47,14 @@ public final class Device: Cacheable {
         }
         self.commandQueue = queue
         
+        // Initialize texture cache
+        var cache: CVMetalTextureCache?
+        if CVMetalTextureCacheCreate(kCFAllocatorDefault, nil, device, nil, &cache) != kCVReturnSuccess {
+            // Handle error or set to nil
+            cache = nil
+        }
+        self.textureCache = cache
+
         if #available(iOS 10.0, macOS 10.12, *) {
             self.defaultLibrary = try? device.makeDefaultLibrary(bundle: Bundle.main)
         } else {
@@ -113,13 +126,13 @@ extension Device {
     }
     
     static func readMTLFunction(_ name: String) async throws -> MTLFunction {
-        let sharedDevice = await Shared.shared.getInitializedDevice()
+        let deviceActor = await Shared.shared.getInitializedDevice()
         // First read the project
-        if let libray = sharedDevice.defaultLibrary, let function = libray.makeFunction(name: name) {
+        if let libray = await deviceActor.defaultLibrary, let function = libray.makeFunction(name: name) {
             return function
         }
         // Then read from ``Harbeth Framework``
-        if let libray = sharedDevice.harbethLibrary, let function = libray.makeFunction(name: name) {
+        if let libray = await deviceActor.harbethLibrary, let function = libray.makeFunction(name: name) {
             return function
         }
         #if DEBUG
@@ -132,14 +145,25 @@ extension Device {
 
 extension Device {
     
+    // Required by Cacheable, or if Device.sharedTextureCache() needs it.
+    // This provides access to the actor's textureCache property.
+    public func getTextureCache() async -> CVMetalTextureCache? {
+        return self.textureCache
+    }
+
+    // Mutating func to update contexts dictionary
+    func setContext(_ context: CIContext, for key: CGColorSpace) {
+        self.contexts[key] = context
+    }
+
     @MainActor public static func device() async -> MTLDevice {
-        let d = await Shared.shared.getInitializedDevice()
-        return d.device
+        let dActor = await Shared.shared.getInitializedDevice()
+        return await dActor.device
     }
     
     public static func colorSpace() async -> CGColorSpace {
-        let d = await Shared.shared.getInitializedDevice()
-        return d.colorSpace
+        let dActor = await Shared.shared.getInitializedDevice()
+        return await dActor.colorSpace
     }
     
     public static func bitmapInfo() -> UInt32 {
@@ -150,27 +174,27 @@ extension Device {
     }
     
     @MainActor public static func commandQueue() async -> MTLCommandQueue {
-        let d = await Shared.shared.getInitializedDevice()
-        return d.commandQueue
+        let dActor = await Shared.shared.getInitializedDevice()
+        return await dActor.commandQueue
     }
     
     public static func sharedTextureCache() async -> CVMetalTextureCache? {
-        let d = await Shared.shared.getInitializedDevice()
-        return await d.getTextureCache()
+        let dActor = await Shared.shared.getInitializedDevice()
+        return await dActor.getTextureCache() // Calls the instance method on the actor
     }
     
-    public static func context() async -> CIContext {
+    @MainActor public static func context() async -> CIContext {
         return await Device.context(colorSpace: await Device.colorSpace())
     }
     
-    public static func context(cgImage: CGImage) async -> CIContext {
+    @MainActor public static func context(cgImage: CGImage) async -> CIContext {
         let cs = cgImage.colorSpace ?? (await Device.colorSpace())
         return await Device.context(colorSpace: cs)
     }
     
-    public static func context(colorSpace: CGColorSpace) async -> CIContext {
-        let sharedDevice = await Shared.shared.getInitializedDevice()
-        if let context = sharedDevice.contexts[colorSpace] {
+    @MainActor public static func context(colorSpace: CGColorSpace) async -> CIContext {
+        let deviceActor = await Shared.shared.getInitializedDevice()
+        if let context = await deviceActor.contexts[colorSpace] {
             return context
         }
         var options: [CIContextOption : Any] = [
@@ -190,20 +214,23 @@ extension Device {
             // Sounds more like allowLowPerformance, though, so turn it off
             options[CIContextOption.allowLowPower] = false
         }
-        if let workingColorSpace = sharedDevice.workingColorSpace {
+        if let workingColorSpace = await deviceActor.workingColorSpace {
             // We are likely to encounter images with wider colour than sRGB
             options[CIContextOption.workingColorSpace] = workingColorSpace
         }
         let context: CIContext
-        // Updated to await async versions of commandQueue() and device()
+        // Use device and commandQueue directly from the actor instance
+        let mtlDevice = await deviceActor.device
+        let mtlCommandQueue = await deviceActor.commandQueue
+
         if #available(iOS 13.0, *, macOS 10.15, *) {
-            context = CIContext(mtlCommandQueue: await Device.commandQueue(), options: options)
+            context = CIContext(mtlCommandQueue: mtlCommandQueue, options: options)
         } else if #available(iOS 9.0, *, macOS 10.11, *) {
-            context = CIContext(mtlDevice: await Device.device(), options: options)
+            context = CIContext(mtlDevice: mtlDevice, options: options)
         } else {
             context = CIContext(options: options)
         }
-        sharedDevice.contexts[colorSpace] = context // Mutating actor's property via reference
+        await deviceActor.setContext(context, for: colorSpace) // Call the new mutating func
         return context
     }
 }

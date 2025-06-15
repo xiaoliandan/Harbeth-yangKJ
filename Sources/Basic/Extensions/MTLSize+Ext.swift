@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import MetalKit
+@preconcurrency import MetalKit
 
 extension MTLSize: HarbethCompatible { }
 
@@ -15,7 +15,7 @@ extension HarbethWrapper where MTLSize == Base {
     /// Maximum metal texture size that can be processed.
     /// - Parameter device: Device information to create other objects.
     /// - Returns: New metal texture size.
-    public func maxTextureSize(device: MTLDevice? = nil) async -> MTLSize {
+    @MainActor public func maxTextureSize(device: MTLDevice? = nil) async -> MTLSize {
         let effectiveDevice: MTLDevice
         if let providedDevice = device {
             effectiveDevice = providedDevice
