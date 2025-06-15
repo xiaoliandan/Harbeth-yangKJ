@@ -245,7 +245,7 @@ extension TextureLoader {
         let finalOptions = options ?? TextureLoader.defaultOptions
         let deviceInstance = await Shared.shared.getInitializedDevice()
         let loader = deviceInstance.textureLoader
-        return try await Task.withCheckedThrowingContinuation { continuation in
+        return try await withCheckedThrowingContinuation { continuation in
             loader.newTexture(cgImage: cgImage, options: finalOptions) { texture, error in
                 if let texture = texture {
                     continuation.resume(returning: texture)

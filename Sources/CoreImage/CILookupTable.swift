@@ -21,7 +21,7 @@ public struct CILookupTable: CoreImageProtocol, Sendable {
         return .coreimage(CIName: "CISourceOverCompositing")
     }
     
-    public func coreImageApply(filter: CIFilter, input ciImage: CIImage) throws -> CIImage {
+    public func coreImageApply(filter: CIFilter, input ciImage: CIImage) async throws -> CIImage {
         guard let cubeResource = cubeResource else {
             throw HarbethError.cubeResource
         }
@@ -29,7 +29,7 @@ public struct CILookupTable: CoreImageProtocol, Sendable {
             kCIInputImageKey: ciImage,
             "inputCubeData" : cubeResource.data,
             "inputCubeDimension": cubeResource.dimension,
-            "inputColorSpace": Device.colorSpace()
+            "inputColorSpace": await Device.colorSpace()
         ])
         guard let outputImage = cubeFilter?.outputImage else {
             throw HarbethError.outputCIImage("CIColorCubeWithColorSpace")
