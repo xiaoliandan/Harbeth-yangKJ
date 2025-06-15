@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import MetalPerformanceShaders
+@preconcurrency import MetalPerformanceShaders
 import simd
 
 // Note: @unchecked Sendable is used because this struct holds non-Sendable MPSImageHistogram/Equalization. Ensure thread-safe usage.
@@ -46,7 +46,7 @@ public struct MPSHistogram: MPSKernelProtocol, @unchecked Sendable {
     private var histogram: MPSImageHistogram
     private var equalization: MPSImageHistogramEqualization
     
-    public init(histogramEntries: Int = MPSHistogram.range.value) async {
+    @MainActor public init(histogramEntries: Int = MPSHistogram.range.value) async {
         self.metalDevice = await Device.device()
         var histogramInfo = MPSHistogram.createMPSImageHistogramInfo(histogramEntries)
         self.histogram = MPSImageHistogram(device: self.metalDevice, histogramInfo: &histogramInfo)

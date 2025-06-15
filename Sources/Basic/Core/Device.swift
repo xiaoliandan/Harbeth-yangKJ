@@ -9,6 +9,7 @@
 import Foundation
 import MetalKit
 import VideoToolbox
+@preconcurrency import CoreImage
 
 /// Global public information
 public actor Device: Cacheable {
@@ -178,7 +179,7 @@ extension Device {
         return await dActor.commandQueue
     }
     
-    public static func sharedTextureCache() async -> CVMetalTextureCache? {
+    @MainActor public static func sharedTextureCache() async -> CVMetalTextureCache? {
         let dActor = await Shared.shared.getInitializedDevice()
         return await dActor.getTextureCache() // Calls the instance method on the actor
     }

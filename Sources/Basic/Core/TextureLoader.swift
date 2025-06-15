@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import MetalKit
+@preconcurrency import MetalKit
 import CoreImage
 
 /// Convert to metal texture Or create empty metal texture.

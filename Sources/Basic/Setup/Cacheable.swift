@@ -1,3 +1,4 @@
+@preconcurrency import Metal
 //
 //  TextureCacheable.swift
 //  Harbeth
@@ -18,21 +19,24 @@ public typealias CVMetalTextureCache = AnyClass
 public protocol Cacheable: AnyObject {
     
     /// Asynchronously gets or creates the Metal texture cache.
-    func getTextureCache() async -> CVMetalTextureCache?
+    @MainActor func getTextureCache() async -> CVMetalTextureCache?
     
     /// Release the CVMetalTextureCache resource
     func deferTextureCache()
 }
 
-fileprivate let C7ATCacheContext: UInt8 = 0
-fileprivate let textureCacheKey = UnsafeRawPointer(bitPattern: Int(C7ATCacheContext) + 1)!
+// fileprivate let C7ATCacheContext: UInt8 = 0
+// fileprivate let textureCacheKey = UnsafeRawPointer(bitPattern: Int(C7ATCacheContext) + 1)!
+private enum AssociatedKeys {
+    static var textureCache: UInt8 = 0
+}
 
 extension Cacheable {
 
     public func getTextureCache() async -> CVMetalTextureCache? {
         // First, check if the cache already exists using the synchronized block
         let existingCache = synchronizedCacheable {
-            objc_getAssociatedObject(self, textureCacheKey) as? CVMetalTextureCache
+            objc_getAssociatedObject(self, &AssociatedKeys.textureCache) as? CVMetalTextureCache
         }
         if let cache = existingCache {
             return cache
@@ -41,7 +45,8 @@ extension Cacheable {
         // If not, create it. The potentially async part is outside the sync block for fetching.
         var newTextureCache: CVMetalTextureCache?
         #if !targetEnvironment(simulator)
-        let device = await Device.device() // Async call
+        // Since getTextureCache is now @MainActor, Device.device() which is also @MainActor can be called directly.
+        let device = await Device.device()
         CVMetalTextureCacheCreate(kCFAllocatorDefault, nil, device, nil, &newTextureCache)
         #endif
 
@@ -49,17 +54,17 @@ extension Cacheable {
         // This is a critical section to prevent race conditions on setting the associated object.
         return synchronizedCacheable {
             // Re-check in case another thread/task created it in the meantime
-            if let alreadySetCache = objc_getAssociatedObject(self, textureCacheKey) as? CVMetalTextureCache {
+            if let alreadySetCache = objc_getAssociatedObject(self, &AssociatedKeys.textureCache) as? CVMetalTextureCache {
                 return alreadySetCache // Another task won the race
             }
-            objc_setAssociatedObject(self, textureCacheKey, newTextureCache, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &AssociatedKeys.textureCache, newTextureCache, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             return newTextureCache
         }
     }
     
     public func deferTextureCache() {
         let existingCache = synchronizedCacheable { // Keep sync access for defer
-            objc_getAssociatedObject(self, textureCacheKey) as? CVMetalTextureCache
+            objc_getAssociatedObject(self, &AssociatedKeys.textureCache) as? CVMetalTextureCache
         }
         #if !targetEnvironment(simulator)
         if let textureCache = existingCache {
