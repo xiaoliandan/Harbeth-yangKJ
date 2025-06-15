@@ -126,6 +126,7 @@ public struct TextureLoader {
         guard let data: UnsafeMutablePointer<UInt8> = bitmap.bitmapData else {
             throw HarbethError.bitmapDataNotFound
         }
+        // TextureLoader.emptyTexture is already async. No change needed here, already correct.
         let texture = try await TextureLoader.emptyTexture(width: Int(bitmap.size.width), height: Int(bitmap.size.height), options: [
             .texturePixelFormat: pixelFormat,
         ])
@@ -220,6 +221,7 @@ extension TextureLoader {
     /// Creates a new only read metal texture from a given bitmap image.
     /// - Parameter cgImage: Bitmap image
     public static func shaderReadTexture(with cgImage: CGImage) async throws -> MTLTexture {
+        // TextureLoader.init is already async. No change needed here, already correct.
         try await TextureLoader.init(with: cgImage, options: TextureLoader.shaderReadTextureOptions).texture
     }
     
@@ -229,6 +231,7 @@ extension TextureLoader {
     public static func copyTexture(with texture: MTLTexture) async throws -> MTLTexture {
         // 纹理最好不要又作为输入纹理又作为输出纹理，否则会出现重复内容，
         // 所以需要拷贝新的纹理来承载新的内容‼️
+        // TextureLoader.makeTexture is already async. No change needed here, already correct.
         return try await TextureLoader.makeTexture(width: texture.width, height: texture.height, options: [
             .texturePixelFormat: texture.pixelFormat,
             .textureUsage: texture.usage,
@@ -262,6 +265,7 @@ extension TextureLoader {
         guard let cgImage = image.cgImage else {
             throw HarbethError.image2CGImage
         }
+        // makeTexture(with:cgImage:) is already async. No change needed here, already correct.
         return try await makeTexture(with: cgImage, options: options)
     }
     
@@ -276,6 +280,7 @@ extension TextureLoader {
         guard let cgImage = ciImage.c7.toCGImage(context: context) else {
             throw HarbethError.source2Texture
         }
+        // makeTexture(with:cgImage:) is already async. No change needed here, already correct.
         return try await makeTexture(with: cgImage, options: finalOptions)
     }
 }

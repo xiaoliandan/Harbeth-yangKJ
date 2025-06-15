@@ -151,6 +151,33 @@ extension Device {
         return contexts[colorSpace]
     }
 
+    public func cachedComputePipelineState(for kernel: String) async throws -> MTLComputePipelineState {
+        // Access actor's own 'pipelines' dictionary
+        if let pipelineState = self.pipelines[kernel] {
+            return pipelineState
+        }
+
+        // Call the static 'Device.readMTLFunction'. This function is okay as it
+        // internally (and correctly) awaits the shared Device actor instance
+        // to access library properties for creating the MTLFunction.
+        let function = try await Device.readMTLFunction(kernel)
+
+        // Use actor's own 'device' property to create the pipeline state
+        let newPipelineState: MTLComputePipelineState
+        do {
+            newPipelineState = try await self.device.makeComputePipelineState(function: function)
+        } catch {
+            // Assuming HarbethError.computePipelineState(kernel) exists
+            // If not, rethrow or wrap in a generic error. For now, let's assume it does or rethrow.
+            // For the purpose of this subtask, directly throwing the error from makeComputePipelineState is acceptable.
+             throw error // Or a specific HarbethError
+        }
+
+        // Store in actor's own 'pipelines' dictionary
+        self.pipelines[kernel] = newPipelineState
+        return newPipelineState
+    }
+
     // Add to public actor Device scope
     public func texture(from pixelBuffer: CVPixelBuffer, usage: MTLTextureUsage = .shaderRead) async throws -> MTLTexture {
         guard let anUnsafeTextureCache = self.textureCache else {

@@ -10,7 +10,7 @@
 
 import Foundation
 import MetalKit
-import Metal
+@preconcurrency import Metal
 
 internal struct Compute {
     /// Create a parallel computation pipeline.
@@ -18,23 +18,8 @@ internal struct Compute {
     /// - parameter kernel: Specifies the name of the data parallel computing coloring function
     /// - Returns: MTLComputePipelineState
     @inlinable static func makeComputePipelineState(with kernel: String) async throws -> MTLComputePipelineState {
-        let sharedActor = Shared.shared // Get actor instance
-        let sharedDeviceInstance = await sharedActor.getInitializedDevice() // Await device
-
-        // Access pipelines on the Device instance.
-        if let pipelineState = sharedDeviceInstance.pipelines[kernel] {
-            return pipelineState
-        }
-
-        let function = try await Device.readMTLFunction(kernel)
-        // Device.device() is now async, use the already fetched metalDevice from sharedDeviceInstance
-        guard let pipeline = try? await sharedDeviceInstance.device.makeComputePipelineState(function: function) else {
-            throw HarbethError.computePipelineState(kernel)
-        }
-        // pipelines is a var on Device, and Device is a class.
-        // sharedDeviceInstance is a let constant holding the Device reference.
-        sharedDeviceInstance.pipelines[kernel] = pipeline
-        return pipeline
+        let deviceActor = await Shared.shared.getInitializedDevice()
+        return try await deviceActor.cachedComputePipelineState(for: kernel)
     }
     
     // Removed makeComputePipelineState with completion handler
