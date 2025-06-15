@@ -118,8 +118,7 @@ extension C7FilterProtocol {
         case .mps where self is MPSKernelProtocol:
             var textures = [destTexture, texture]
             textures += self.otherInputTextures
-            // Assuming MPSKernelProtocol's encode is still synchronous as per current struct design.
-            return try (self as! MPSKernelProtocol).encode(commandBuffer: buffer, textures: textures)
+            return try await (self as! MPSKernelProtocol).encode(commandBuffer: buffer, textures: textures)
         default:
             return destTexture
         }
@@ -172,5 +171,5 @@ public protocol MPSKernelProtocol: C7FilterProtocol {
     ///   - commandBuffer: A valid MTLCommandBuffer to receive the encoded filter.
     ///   - textures: Texture array, The first is the output texture, the second is the input texture, and other input textures.
     /// - Returns: Return output metal texture.
-    func encode(commandBuffer: MTLCommandBuffer, textures: [MTLTexture]) throws -> MTLTexture
+    func encode(commandBuffer: MTLCommandBuffer, textures: [MTLTexture]) async throws -> MTLTexture
 }

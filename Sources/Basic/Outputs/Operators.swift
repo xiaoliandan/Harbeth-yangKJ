@@ -4,80 +4,73 @@
 //
 //  Created by Condy on 2022/2/13.
 //
+//  This file has been refactored to replace custom operators
+//  with named asynchronous functions for better clarity and Swift Concurrency compatibility.
 
 import Foundation
 import CoreVideo
 import MetalKit
 
-precedencegroup AppendPrecedence {
-    associativity: left
-    higherThan: LogicalConjunctionPrecedence
-}
-
-infix operator ->> : AppendPrecedence
-infix operator -->>> : AppendPrecedence
-
-// MARK: - single operator
+// MARK: - Single Filter Application
 
 @discardableResult @inlinable
-public func ->> (left: MTLTexture, right: C7FilterProtocol) -> MTLTexture {
-    HarbethIO(element: left, filter: right).filtered()
+public func applyFilter(_ filter: C7FilterProtocol, to element: MTLTexture) async -> MTLTexture {
+    return await HarbethIO(element: element, filter: filter).filtered()
 }
 
 @discardableResult @inlinable
-public func ->> (left: C7Image, right: C7FilterProtocol) -> C7Image {
-    HarbethIO(element: left, filter: right).filtered()
+public func applyFilter(_ filter: C7FilterProtocol, to element: C7Image) async -> C7Image {
+    return await HarbethIO(element: element, filter: filter).filtered()
 }
 
 @discardableResult @inlinable
-public func ->> (left: CGImage, right: C7FilterProtocol) -> CGImage {
-    HarbethIO(element: left, filter: right).filtered()
+public func applyFilter(_ filter: C7FilterProtocol, to element: CGImage) async -> CGImage {
+    return await HarbethIO(element: element, filter: filter).filtered()
 }
 
 @discardableResult @inlinable
-public func ->> (left: CIImage, right: C7FilterProtocol) -> CIImage {
-    HarbethIO(element: left, filter: right).filtered()
+public func applyFilter(_ filter: C7FilterProtocol, to element: CIImage) async -> CIImage {
+    return await HarbethIO(element: element, filter: filter).filtered()
 }
 
 @discardableResult @inlinable
-public func ->> (left: CMSampleBuffer, right: C7FilterProtocol) -> CMSampleBuffer {
-    HarbethIO(element: left, filter: right).filtered()
+public func applyFilter(_ filter: C7FilterProtocol, to element: CMSampleBuffer) async -> CMSampleBuffer {
+    return await HarbethIO(element: element, filter: filter).filtered()
 }
 
 @discardableResult @inlinable
-public func ->> (left: CVPixelBuffer, right: C7FilterProtocol) -> CVPixelBuffer {
-    HarbethIO(element: left, filter: right).filtered()
+public func applyFilter(_ filter: C7FilterProtocol, to element: CVPixelBuffer) async -> CVPixelBuffer {
+    return await HarbethIO(element: element, filter: filter).filtered()
 }
 
-
-// MARK: - array operator
-
-@discardableResult @inlinable
-public func -->>> (left: MTLTexture, right: [C7FilterProtocol]) -> MTLTexture {
-    HarbethIO(element: left, filters: right).filtered()
-}
+// MARK: - Multiple Filters Application
 
 @discardableResult @inlinable
-public func -->>> (left: C7Image, right: [C7FilterProtocol]) -> C7Image {
-    HarbethIO(element: left, filters: right).filtered()
+public func applyFilters(_ filters: [C7FilterProtocol], to element: MTLTexture) async -> MTLTexture {
+    return await HarbethIO(element: element, filters: filters).filtered()
 }
 
 @discardableResult @inlinable
-public func -->>> (left: CGImage, right: [C7FilterProtocol]) -> CGImage {
-    HarbethIO(element: left, filters: right).filtered()
+public func applyFilters(_ filters: [C7FilterProtocol], to element: C7Image) async -> C7Image {
+    return await HarbethIO(element: element, filters: filters).filtered()
 }
 
 @discardableResult @inlinable
-public func -->>> (left: CIImage, right: [C7FilterProtocol]) -> CIImage {
-    HarbethIO(element: left, filters: right).filtered()
+public func applyFilters(_ filters: [C7FilterProtocol], to element: CGImage) async -> CGImage {
+    return await HarbethIO(element: element, filters: filters).filtered()
 }
 
 @discardableResult @inlinable
-public func -->>> (left: CMSampleBuffer, right: [C7FilterProtocol]) -> CMSampleBuffer {
-    HarbethIO(element: left, filters: right).filtered()
+public func applyFilters(_ filters: [C7FilterProtocol], to element: CIImage) async -> CIImage {
+    return await HarbethIO(element: element, filters: filters).filtered()
 }
 
 @discardableResult @inlinable
-public func -->>> (left: CVPixelBuffer, right: [C7FilterProtocol]) -> CVPixelBuffer {
-    HarbethIO(element: left, filters: right).filtered()
+public func applyFilters(_ filters: [C7FilterProtocol], to element: CMSampleBuffer) async -> CMSampleBuffer {
+    return await HarbethIO(element: element, filters: filters).filtered()
+}
+
+@discardableResult @inlinable
+public func applyFilters(_ filters: [C7FilterProtocol], to element: CVPixelBuffer) async -> CVPixelBuffer {
+    return await HarbethIO(element: element, filters: filters).filtered()
 }

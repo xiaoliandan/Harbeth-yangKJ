@@ -25,7 +25,7 @@ public struct MPSGaussianBlur: MPSKernelProtocol, @unchecked Sendable {
         return .mps(performance: self.gaussian)
     }
     
-    public func encode(commandBuffer: MTLCommandBuffer, textures: [MTLTexture]) throws -> MTLTexture {
+    public func encode(commandBuffer: MTLCommandBuffer, textures: [MTLTexture]) async throws -> MTLTexture {
         let destinationTexture = textures[0]
         let sourceTexture = textures[1]
         self.gaussian.encode(commandBuffer: commandBuffer, sourceTexture: sourceTexture, destinationTexture: destinationTexture)

@@ -28,7 +28,7 @@ internal struct Compute {
 
         let function = try await Device.readMTLFunction(kernel)
         // Device.device() is now async, use the already fetched metalDevice from sharedDeviceInstance
-        guard let pipeline = try? sharedDeviceInstance.device.makeComputePipelineState(function: function) else {
+        guard let pipeline = try? await sharedDeviceInstance.device.makeComputePipelineState(function: function) else {
             throw HarbethError.computePipelineState(kernel)
         }
         // pipelines is a var on Device, and Device is a class.

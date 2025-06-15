@@ -205,7 +205,7 @@ extension RenderView {
                     iterationDestTexture = tempTex
                 }
 
-                let sourceForFilter = try! filter.combinationBegin(for: commandBuffer, source: currentProcessingTexture, dest: iterationDestTexture)
+                let sourceForFilter = try! await filter.combinationBegin(for: commandBuffer, source: currentProcessingTexture, dest: iterationDestTexture)
                 var tempResultTexture: MTLTexture?
                 switch filter.modifier {
                 case .compute, .mps, .render:

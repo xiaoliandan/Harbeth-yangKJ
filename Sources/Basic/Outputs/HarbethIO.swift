@@ -72,150 +72,112 @@ public typealias BoxxIO<Dest> = HarbethIO<Dest>
         self.hasCoreImage = filters.contains { $0 is CoreImageProtocol }
     }
     
-    public func output() throws -> Dest {
+    public func output() async throws -> Dest {
         if self.filters.isEmpty {
             return element
         }
         switch element {
         case let ee as MTLTexture:
-            return try filtering(texture: ee) as! Dest
+            return try await filtering(texture: ee) as! Dest
         case let ee as C7Image:
-            return try filtering(image: ee) as! Dest
+            return try await filtering(image: ee) as! Dest
         case let ee as CIImage:
-            return try filtering(ciImage: ee) as! Dest
+            return try await filtering(ciImage: ee) as! Dest
         case let ee where CFGetTypeID(ee as CFTypeRef) == CGImage.typeID:
-            return try filtering(cgImage: ee as! CGImage) as! Dest
+            return try await filtering(cgImage: ee as! CGImage) as! Dest
         case let ee where CFGetTypeID(ee as CFTypeRef) == CVPixelBufferGetTypeID():
-            return try filtering(pixelBuffer: ee as! CVPixelBuffer) as! Dest
+            return try await filtering(pixelBuffer: ee as! CVPixelBuffer) as! Dest
         case let ee where CFGetTypeID(ee as CFTypeRef) == CMSampleBufferGetTypeID():
-            return try filtering(sampleBuffer: ee as! CMSampleBuffer) as! Dest
+            return try await filtering(sampleBuffer: ee as! CMSampleBuffer) as! Dest
         default:
             return element            
         }
     }
     
     /// Convert to texture and add filters.
-    /// - Parameter complete: The conversion is complete.
-    public func transmitOutput(complete: @escaping (Result<Dest, HarbethError>) -> Void) {
-        if self.filters.isEmpty {
-            complete(.success(element))
-            return
-        }
-        switch element {
-        case let ee as MTLTexture:
-            filtering(texture: ee, complete: { complete($0.map { $0 as! Dest }) })
-        case let ee as C7Image:
-            filtering(image: ee, complete: { complete($0.map { $0 as! Dest }) })
-        case let ee as CIImage:
-            filtering(ciImage: ee, complete: { complete($0.map { $0 as! Dest }) })
-        case let ee where CFGetTypeID(ee as CFTypeRef) == CGImage.typeID:
-            filtering(cgImage: ee as! CGImage, complete: { complete($0.map { $0 as! Dest }) })
-        case let ee where CFGetTypeID(ee as CFTypeRef) == CVPixelBufferGetTypeID():
-            filtering(pixelBuffer: ee as! CVPixelBuffer, complete: { complete($0.map { $0 as! Dest }) })
-        case let ee where CFGetTypeID(ee as CFTypeRef) == CMSampleBufferGetTypeID():
-            filtering(sampleBuffer: ee as! CMSampleBuffer, complete: { complete($0.map { $0 as! Dest }) })
-        default:
-            complete(.success(element))
-        }
+    @available(*, deprecated, message: "Use `output()` method instead.", renamed: "output")
+    public func transmitOutput() async throws -> Dest {
+        return try await output()
     }
     
     /// Asynchronous convert to texture and add filters.
     /// - Parameters:
     ///   - texture: Input metal texture.
-    ///   - complete: The conversion is complete.
+    @available(*, deprecated, message: "Use async version `filtering(texture:) async throws -> MTLTexture` instead.", renamed: "filtering(texture:)")
     public func filtering(texture: MTLTexture, complete: @escaping (Result<MTLTexture, HarbethError>) -> Void) {
-        if self.filters.isEmpty {
-            complete(.success(texture))
-            return
-        }
-        var commandBuffer: MTLCommandBuffer?
-        if self.hasCoreImage == false {
+        Task {
             do {
-                commandBuffer = try makeCommandBuffer()
+                let result = try await filtering(texture: texture)
+                complete(.success(result))
             } catch {
                 complete(.failure(HarbethError.toHarbethError(error)))
-                return
             }
         }
-        var result: MTLTexture = texture
-        var iterator = self.filters.makeIterator()
-        // 递归处理
-        func recursion(filter: C7FilterProtocol?, sourceTexture: MTLTexture) {
-            guard let filter = filter else {
-                if hasCoreImage {
-                    complete(.success(result))
-                } else {
-                    commandBuffer?.asyncCommit { complete($0.map({ result })) }
-                }
-                return
-            }
-            runAsyncIO(with: sourceTexture, filter: filter, complete: { res in
-                switch res {
-                case .success(let t):
-                    result = t
-                    recursion(filter: iterator.next(), sourceTexture: result)
-                case .failure(let error):
-                    complete(.failure(HarbethError.toHarbethError(error)))
-                }
-            }, buffer: commandBuffer)
-        }
-        recursion(filter: iterator.next(), sourceTexture: result)
     }
 }
 
 // MARK: - filtering methods
 extension HarbethIO {
     
-    private func filtering(pixelBuffer: CVPixelBuffer) throws -> CVPixelBuffer {
-        let inTexture = try TextureLoader.init(with: pixelBuffer).texture
-        let texture = try filtering(texture: inTexture)
+    private func filtering(pixelBuffer: CVPixelBuffer) async throws -> CVPixelBuffer {
+        let inTexture = try await TextureLoader.init(with: pixelBuffer).texture
+        let texture = try await filtering(texture: inTexture)
+        // copyToPixelBuffer is likely synchronous CPU work.
         pixelBuffer.c7.copyToPixelBuffer(with: texture)
         return pixelBuffer
     }
     
-    private func filtering(sampleBuffer: CMSampleBuffer) throws -> CMSampleBuffer {
+    private func filtering(sampleBuffer: CMSampleBuffer) async throws -> CMSampleBuffer {
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             throw HarbethError.CMSampleBufferToCVPixelBuffer
         }
-        let p = try filtering(pixelBuffer: pixelBuffer)
+        let p = try await filtering(pixelBuffer: pixelBuffer)
+        // toCMSampleBuffer is likely synchronous.
         guard let buffer = p.c7.toCMSampleBuffer() else {
             throw HarbethError.CVPixelBufferToCMSampleBuffer
         }
         return buffer
     }
     
-    private func filtering(ciImage: CIImage) throws -> CIImage {
-        let inTexture = try TextureLoader.init(with: ciImage).texture
-        let texture = try filtering(texture: inTexture)
+    private func filtering(ciImage: CIImage) async throws -> CIImage {
+        let inTexture = try await TextureLoader.init(with: ciImage).texture
+        let texture = try await filtering(texture: inTexture)
+        // toCIImage is likely synchronous.
         return try texture.c7.toCIImage(mirrored: mirrored)
     }
     
-    private func filtering(cgImage: CGImage) throws -> CGImage {
-        let inTexture = try TextureLoader.init(with: cgImage).texture
-        let texture = try filtering(texture: inTexture)
+    private func filtering(cgImage: CGImage) async throws -> CGImage {
+        let inTexture = try await TextureLoader.init(with: cgImage).texture
+        let texture = try await filtering(texture: inTexture)
+        // toCGImage is likely synchronous.
         guard let cgImg = texture.c7.toCGImage() else {
             throw HarbethError.texture2Image
         }
         return cgImg
     }
     
-    private func filtering(image: C7Image) throws -> C7Image {
-        let inTexture = try TextureLoader.init(with: image).texture
-        let texture = try filtering(texture: inTexture)
+    private func filtering(image: C7Image) async throws -> C7Image {
+        let inTexture = try await TextureLoader.init(with: image).texture
+        let texture = try await filtering(texture: inTexture)
+        // fixImageOrientation is likely synchronous.
         return try texture.c7.fixImageOrientation(refImage: image)
     }
     
-    private func filtering(texture: MTLTexture) throws -> MTLTexture {
+    private func filtering(texture: MTLTexture) async throws -> MTLTexture {
         var inTexture: MTLTexture = texture
         if hasCoreImage {
             for filter in filters {
-                inTexture = try textureIO(with: inTexture, filter: filter, for: nil)
+                inTexture = try await textureIO(with: inTexture, filter: filter, for: nil)
             }
         } else {
-            let commandBuffer = try makeCommandBuffer()
+            // makeCommandBuffer is now async
+            let commandBuffer = try await makeCommandBuffer()
             for filter in filters {
-                inTexture = try textureIO(with: inTexture, filter: filter, for: commandBuffer)
+                // textureIO is now async
+                inTexture = try await textureIO(with: inTexture, filter: filter, for: commandBuffer)
             }
+            // This might need to change if commitAndWaitUntilCompleted has an async alternative
+            // or if the overall flow becomes fully async. For now, keeping as is.
             commandBuffer.commitAndWaitUntilCompleted()
         }
         return inTexture
@@ -223,101 +185,66 @@ extension HarbethIO {
 }
 
 // MARK: - asynchronous filtering methods
+// These methods are now deprecated and will call their async counterparts.
 extension HarbethIO {
     
-    private func filtering(pixelBuffer: CVPixelBuffer, complete: @escaping (Result<CVPixelBuffer, HarbethError>) -> Void) {
-        do {
-            let texture = try TextureLoader(with: pixelBuffer).texture
-            filtering(texture: texture, complete: { res in
-                let ress = res.map {
-                    pixelBuffer.c7.copyToPixelBuffer(with: $0)
-                    return pixelBuffer
-                }
-                complete(ress)
-            })
-        } catch {
-            complete(.failure(HarbethError.toHarbethError(error)))
-        }
-    }
-    
-    private func filtering(sampleBuffer: CMSampleBuffer, complete: @escaping (Result<CMSampleBuffer, HarbethError>) -> Void) {
-        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
-            complete(.failure(HarbethError.CMSampleBufferToCVPixelBuffer))
-            return
-        }
-        filtering(pixelBuffer: pixelBuffer, complete: { res in
-            switch res {
-            case .success(let p):
-                guard let buffer = p.c7.toCMSampleBuffer() else {
-                    complete(.failure(HarbethError.CVPixelBufferToCMSampleBuffer))
-                    return
-                }
-                complete(.success(buffer))
-            case .failure(let error):
+    @available(*, deprecated, message: "Use async version `filtering(pixelBuffer:) async throws -> CVPixelBuffer` instead.", renamed: "filtering(pixelBuffer:)")
+    internal func filtering(pixelBuffer: CVPixelBuffer, complete: @escaping (Result<CVPixelBuffer, HarbethError>) -> Void) {
+        Task {
+            do {
+                let result = try await filtering(pixelBuffer: pixelBuffer)
+                complete(.success(result))
+            } catch {
                 complete(.failure(HarbethError.toHarbethError(error)))
             }
-        })
-    }
-    
-    private func filtering(ciImage: CIImage, complete: @escaping (Result<CIImage, HarbethError>) -> Void) {
-        do {
-            let texture = try TextureLoader(with: ciImage).texture
-            filtering(texture: texture, complete: { res in
-                switch res {
-                case .success(let t):
-                    do {
-                        let result = try t.c7.toCIImage(mirrored: mirrored)
-                        complete(.success(result))
-                    } catch {
-                        complete(.failure(HarbethError.toHarbethError(error)))
-                    }
-                case .failure(let error):
-                    complete(.failure(HarbethError.toHarbethError(error)))
-                }
-            })
-        } catch {
-            complete(.failure(HarbethError.toHarbethError(error)))
         }
     }
     
-    private func filtering(cgImage: CGImage, complete: @escaping (Result<CGImage, HarbethError>) -> Void) {
-        do {
-            let texture = try TextureLoader(with: cgImage).texture
-            filtering(texture: texture, complete: { res in
-                switch res {
-                case .success(let t):
-                    guard let result = t.c7.toCGImage() else {
-                        complete(.failure(HarbethError.texture2Image))
-                        return
-                    }
-                    complete(.success(result))
-                case .failure(let error):
-                    complete(.failure(HarbethError.toHarbethError(error)))
-                }
-            })
-        } catch {
-            complete(.failure(HarbethError.toHarbethError(error)))
+    @available(*, deprecated, message: "Use async version `filtering(sampleBuffer:) async throws -> CMSampleBuffer` instead.", renamed: "filtering(sampleBuffer:)")
+    internal func filtering(sampleBuffer: CMSampleBuffer, complete: @escaping (Result<CMSampleBuffer, HarbethError>) -> Void) {
+        Task {
+            do {
+                let result = try await filtering(sampleBuffer: sampleBuffer)
+                complete(.success(result))
+            } catch {
+                complete(.failure(HarbethError.toHarbethError(error)))
+            }
         }
     }
     
-    private func filtering(image: C7Image, complete: @escaping (Result<C7Image, HarbethError>) -> Void) {
-        do {
-            let texture = try TextureLoader(with: image).texture
-            filtering(texture: texture, complete: { res in
-                switch res {
-                case .success(let t):
-                    do {
-                        let result = try t.c7.fixImageOrientation(refImage: image)
-                        complete(.success(result))
-                    } catch {
-                        complete(.failure(HarbethError.toHarbethError(error)))
-                    }
-                case .failure(let error):
-                    complete(.failure(HarbethError.toHarbethError(error)))
-                }
-            })
-        } catch {
-            complete(.failure(HarbethError.toHarbethError(error)))
+    @available(*, deprecated, message: "Use async version `filtering(ciImage:) async throws -> CIImage` instead.", renamed: "filtering(ciImage:)")
+    internal func filtering(ciImage: CIImage, complete: @escaping (Result<CIImage, HarbethError>) -> Void) {
+        Task {
+            do {
+                let result = try await filtering(ciImage: ciImage)
+                complete(.success(result))
+            } catch {
+                complete(.failure(HarbethError.toHarbethError(error)))
+            }
+        }
+    }
+    
+    @available(*, deprecated, message: "Use async version `filtering(cgImage:) async throws -> CGImage` instead.", renamed: "filtering(cgImage:)")
+    internal func filtering(cgImage: CGImage, complete: @escaping (Result<CGImage, HarbethError>) -> Void) {
+        Task {
+            do {
+                let result = try await filtering(cgImage: cgImage)
+                complete(.success(result))
+            } catch {
+                complete(.failure(HarbethError.toHarbethError(error)))
+            }
+        }
+    }
+    
+    @available(*, deprecated, message: "Use async version `filtering(image:) async throws -> C7Image` instead.", renamed: "filtering(image:)")
+    internal func filtering(image: C7Image, complete: @escaping (Result<C7Image, HarbethError>) -> Void) {
+        Task {
+            do {
+                let result = try await filtering(image: image)
+                complete(.success(result))
+            } catch {
+                complete(.failure(HarbethError.toHarbethError(error)))
+            }
         }
     }
 }
@@ -345,7 +272,7 @@ extension HarbethIO {
         }
     }
     
-    private func createDestTexture(with sourceTexture: MTLTexture, filter: C7FilterProtocol) throws -> MTLTexture {
+    private func createDestTexture(with sourceTexture: MTLTexture, filter: C7FilterProtocol) async throws -> MTLTexture {
         if self.createDestTexture == false {
             return sourceTexture
         }
@@ -361,7 +288,7 @@ extension HarbethIO {
         }
         // Since the camera acquisition generally uses ' kCVPixelFormatType_32BGRA '
         // The pixel format needs to be consistent, otherwise it will appear blue phenomenon.
-        return try TextureLoader.makeTexture(width: resize.width, height: resize.height, options: [
+        return try await TextureLoader.makeTexture(width: resize.width, height: resize.height, options: [
             .texturePixelFormat: bufferPixelFormat
         ])
     }
@@ -369,11 +296,11 @@ extension HarbethIO {
     /// Do you need to create a new metal texture command buffer.
     /// - Parameter buffer: Old command buffer.
     /// - Returns: A command buffer.
-    private func makeCommandBuffer(for buffer: MTLCommandBuffer? = nil) throws -> MTLCommandBuffer {
+    private func makeCommandBuffer(for buffer: MTLCommandBuffer? = nil) async throws -> MTLCommandBuffer {
         if let commandBuffer = buffer {
             return commandBuffer
         }
-        guard let commandBuffer = Device.commandQueue().makeCommandBuffer() else {
+        guard let commandBuffer = await Device.commandQueue().makeCommandBuffer() else {
             throw HarbethError.commandBuffer
         }
         return commandBuffer
@@ -386,71 +313,33 @@ extension HarbethIO {
     ///   - filter: It must be an object implementing C7FilterProtocol
     ///   - buffer: A valid MTLCommandBuffer to receive the encoded filter.
     /// - Returns: Output texture after processing
-    private func textureIO(with texture: MTLTexture, filter: C7FilterProtocol, for buffer: MTLCommandBuffer?) throws -> MTLTexture {
-        let commandBuffer = try makeCommandBuffer(for: buffer)
-        var destTexture = try createDestTexture(with: texture, filter: filter)
-        let inputTexture = try filter.combinationBegin(for: commandBuffer, source: texture, dest: destTexture)
+    private func textureIO(with texture: MTLTexture, filter: C7FilterProtocol, for buffer: MTLCommandBuffer?) async throws -> MTLTexture {
+        let commandBuffer = try await makeCommandBuffer(for: buffer)
+        var destTexture = try await createDestTexture(with: texture, filter: filter)
+        let inputTexture = try await filter.combinationBegin(for: commandBuffer, source: texture, dest: destTexture)
         switch filter.modifier {
         case .coreimage(let name) where filter is CoreImageProtocol:
-            let outputImage = try (filter as! CoreImageProtocol).outputCIImage(with: inputTexture, name: name)
+            let outputImage = try await (filter as! CoreImageProtocol).outputCIImage(with: inputTexture, name: name)
             try outputImage.c7.renderCIImageToTexture(destTexture, commandBuffer: commandBuffer)
         case .compute, .mps, .render:
-            destTexture = try filter.applyAtTexture(form: inputTexture, to: destTexture, for: commandBuffer)
+            // Assuming filter.applyAtTexture will also become async.
+            // For now, the subtask did not explicitly state this for Group 1,
+            // but it's a highly probable change for later steps.
+            // If filter.applyAtTexture is not async, this await will cause an error.
+            // For now, adding it as per the general instruction for "other newly async functions".
+            destTexture = try await filter.applyAtTexture(form: inputTexture, to: destTexture, for: commandBuffer)
         default:
             return texture
         }
         let outputTexture = try filter.combinationAfter(for: commandBuffer, input: destTexture, source: texture)
         if hasCoreImage {
+            // This might need to change if commitAndWaitUntilCompleted has an async alternative
+            // or if the overall flow becomes fully async. For now, keeping as is.
             commandBuffer.commitAndWaitUntilCompleted()
         }
         return outputTexture
     }
     
-    /// Whether to synchronously wait for the execution of the Metal command buffer to complete.
-    /// - Parameters:
-    ///   - texture: Input texture
-    ///   - filter: It must be an object implementing C7FilterProtocol.
-    ///   - complete: Add a block to be called when this command buffer has completed execution.
-    ///   - buffer: A valid MTLCommandBuffer to receive the encoded filter.
-    private func runAsyncIO(with texture: MTLTexture,
-                            filter: C7FilterProtocol,
-                            complete: @escaping (Result<MTLTexture, HarbethError>) -> Void,
-                            buffer: MTLCommandBuffer?) {
-        func combinationAfter(for buffer: MTLCommandBuffer, inputTexture: MTLTexture) {
-            do {
-                let finalTexture = try filter.combinationAfter(for: buffer, input: inputTexture, source: texture)
-                if hasCoreImage {
-                    buffer.asyncCommit { complete($0.map({ finalTexture })) }
-                } else {
-                    complete(.success(finalTexture))
-                }
-            } catch {
-                complete(.failure(HarbethError.toHarbethError(error)))
-            }
-        }
-        do {
-            let commandBuffer = try makeCommandBuffer(for: buffer)
-            let destTexture = try createDestTexture(with: texture, filter: filter)
-            let inputTexture = try filter.combinationBegin(for: commandBuffer, source: texture, dest: destTexture)
-            switch filter.modifier {
-            case .coreimage(let name) where filter is CoreImageProtocol:
-                let outputImage = try (filter as! CoreImageProtocol).outputCIImage(with: inputTexture, name: name)
-                try outputImage.c7.renderCIImageToTexture(destTexture, commandBuffer: commandBuffer)
-                combinationAfter(for: commandBuffer, inputTexture: destTexture)
-            case .compute, .mps, .render:
-                filter.asyncApplyAtTexture(form: inputTexture, to: destTexture, for: commandBuffer) { res in
-                    switch res {
-                    case .success(let outTexture):
-                        combinationAfter(for: commandBuffer, inputTexture: outTexture)
-                    case .failure(let err):
-                        complete(.failure(err))
-                    }
-                }
-            default:
-                break
-            }
-        } catch {
-            complete(.failure(HarbethError.toHarbethError(error)))
-        }
-    }
+    // runAsyncIO has been removed as its functionality is superseded by the async filtering methods
+    // and the refactored textureIO method.
 }

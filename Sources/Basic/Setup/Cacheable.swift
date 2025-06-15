@@ -17,44 +17,59 @@ public typealias CVMetalTextureCache = AnyClass
 
 public protocol Cacheable: AnyObject {
     
-    /// Metal texture cache
-    var textureCache: CVMetalTextureCache? { get set }
+    /// Asynchronously gets or creates the Metal texture cache.
+    func getTextureCache() async -> CVMetalTextureCache?
     
     /// Release the CVMetalTextureCache resource
     func deferTextureCache()
 }
 
 fileprivate let C7ATCacheContext: UInt8 = 0
+fileprivate let textureCacheKey = UnsafeRawPointer(bitPattern: Int(C7ATCacheContext) + 1)!
 
 extension Cacheable {
-    public var textureCache: CVMetalTextureCache? {
-        get {
-            return synchronizedCacheable {
-                if let object = objc_getAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATCacheContext) + 1)!) {
-                    return (object as! CVMetalTextureCache)
-                } else {
-                    var textureCache: CVMetalTextureCache?
-                    #if !targetEnvironment(simulator)
-                    CVMetalTextureCacheCreate(kCFAllocatorDefault, nil, Device.device(), nil, &textureCache)
-                    #endif
-                    objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATCacheContext) + 1)!, textureCache, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-                    return textureCache
-                }
-            }
+
+    public func getTextureCache() async -> CVMetalTextureCache? {
+        // First, check if the cache already exists using the synchronized block
+        let existingCache = synchronizedCacheable {
+            objc_getAssociatedObject(self, textureCacheKey) as? CVMetalTextureCache
         }
-        set {
-            synchronizedCacheable {
-                objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATCacheContext) + 1)!, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        if let cache = existingCache {
+            return cache
+        }
+
+        // If not, create it. The potentially async part is outside the sync block for fetching.
+        var newTextureCache: CVMetalTextureCache?
+        #if !targetEnvironment(simulator)
+        let device = await Device.device() // Async call
+        CVMetalTextureCacheCreate(kCFAllocatorDefault, nil, device, nil, &newTextureCache)
+        #endif
+
+        // Now, associate the new cache, again using the synchronized block
+        // This is a critical section to prevent race conditions on setting the associated object.
+        return synchronizedCacheable {
+            // Re-check in case another thread/task created it in the meantime
+            if let alreadySetCache = objc_getAssociatedObject(self, textureCacheKey) as? CVMetalTextureCache {
+                return alreadySetCache // Another task won the race
             }
+            objc_setAssociatedObject(self, textureCacheKey, newTextureCache, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            return newTextureCache
         }
     }
     
     public func deferTextureCache() {
+        let existingCache = synchronizedCacheable { // Keep sync access for defer
+            objc_getAssociatedObject(self, textureCacheKey) as? CVMetalTextureCache
+        }
         #if !targetEnvironment(simulator)
-        if let textureCache = textureCache {
+        if let textureCache = existingCache {
             CVMetalTextureCacheFlush(textureCache, 0)
         }
         #endif
+        // Optional: remove the associated object after flushing if it's a true "defer"
+        // synchronizedCacheable {
+        //     objc_setAssociatedObject(self, textureCacheKey, nil, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        // }
     }
     
     private func synchronizedCacheable<T>( _ action: () -> T) -> T {
