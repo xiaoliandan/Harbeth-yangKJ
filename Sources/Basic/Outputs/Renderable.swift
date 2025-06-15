@@ -23,7 +23,9 @@ public protocol Renderable: AnyObject {
     
     func setupInputSource()
     
-    func filtering()
+    func filtering() async
+
+    func applyFilters() async
     
     func setupOutputDest(_ dest: MTLTexture)
 }
@@ -48,9 +50,9 @@ extension Renderable {
         }
         set {
             synchronizedRenderable {
-                setupInputSource()
+                setupInputSource() // Assuming this remains synchronous
                 objc_setAssociatedObject(self, UnsafeRawPointer(bitPattern: Int(C7ATRenderableSetFiltersContext))!, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-                filtering()
+                // The call to filtering() is removed.
             }
         }
     }
@@ -104,31 +106,51 @@ extension Renderable {
         }
     }
     
-    @MainActor public func filtering() {
+    @MainActor public func filtering() async {
         guard let texture = inputSource, filters.count > 0 else {
+            // If there's no texture or no filters, consider what should happen.
+            // Maybe call setupOutputDest with the original inputSource if no filters?
+            // Or simply return if there's nothing to process.
+            if let texture = inputSource, filters.isEmpty {
+                self.setupOutputDest(texture) // Output original texture if no filters
+            }
             return
         }
         var dest = HarbethIO(element: texture, filters: filters)
         dest.transmitOutputRealTimeCommit = transmitOutputRealTimeCommit
+
         if self.keepAroundForSynchronousRender {
+            // This mode implies a synchronous expectation which conflicts with `async filtering`.
+            // For now, we'll make it async but the name "SynchronousRender" will be misleading.
+            // This might need further design review for its purpose in an async world.
             do {
                 self.lockedSource = true
-                let result = try dest.output()
+                let result = try await dest.output() // Now async
                 self.setupOutputDest(result)
                 self.lockedSource = false
-            } catch { 
+            } catch {
+                print("Error during synchronous-style filtering: \(error)")
+                self.lockedSource = false
                 return
             }
         } else {
-            dest.transmitOutput(success: { [weak self] result in
-                Task { @MainActor in
-                    guard let self = self else { return } // Ensure self is valid
-                    self.lockedSource = true
-                    self.setupOutputDest(result)
-                    self.lockedSource = false
-                }
-            })
+            do {
+                self.lockedSource = true
+                // Assuming dest.output() is the primary way to get results now.
+                let result = try await dest.output()
+                self.setupOutputDest(result) // Already on MainActor
+                self.lockedSource = false
+            } catch {
+                // Log error or handle as appropriate
+                print("Error during async filtering: \(error)")
+                self.lockedSource = false // Ensure lock is released
+                return
+            }
         }
+    }
+
+    @MainActor public func applyFilters() async {
+        await self.filtering()
     }
 }
 

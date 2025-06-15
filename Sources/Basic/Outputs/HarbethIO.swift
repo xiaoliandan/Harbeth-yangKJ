@@ -316,10 +316,10 @@ extension HarbethIO {
     private func textureIO(with texture: MTLTexture, filter: C7FilterProtocol, for buffer: MTLCommandBuffer?) async throws -> MTLTexture {
         let commandBuffer = try await makeCommandBuffer(for: buffer)
         var destTexture = try await createDestTexture(with: texture, filter: filter)
-        let inputTexture = try filter.combinationBegin(for: commandBuffer, source: texture, dest: destTexture)
+        let inputTexture = try await filter.combinationBegin(for: commandBuffer, source: texture, dest: destTexture)
         switch filter.modifier {
         case .coreimage(let name) where filter is CoreImageProtocol:
-            let outputImage = try (filter as! CoreImageProtocol).outputCIImage(with: inputTexture, name: name)
+            let outputImage = try await (filter as! CoreImageProtocol).outputCIImage(with: inputTexture, name: name)
             try outputImage.c7.renderCIImageToTexture(destTexture, commandBuffer: commandBuffer)
         case .compute, .mps, .render:
             // Assuming filter.applyAtTexture will also become async.

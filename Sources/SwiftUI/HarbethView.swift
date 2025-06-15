@@ -18,6 +18,7 @@ public struct HarbethView<Content>: View where Content: View {
     
     @ObservedObject private var source: Published_Source<C7Image>
     @ViewBuilder private var content: Block
+    private let harbethInput: HarbethViewInput
     
     /// Create an instance from the provided value.
     /// - Parameters:
@@ -38,38 +39,74 @@ public struct HarbethView<Content>: View where Content: View {
     ///   - input: Input source.
     ///   - content: Callback a Image.
     public init(input: HarbethViewInput, @ViewBuilder content: @escaping Block) {
+        self.harbethInput = input
         self.content = content
+        // Initialize `source` with a placeholder or initial image.
+        // The actual processing will happen in `.task`.
         if let placeholder = input.placeholder {
             self.source = Published_Source(placeholder)
-            self.setup(input: input)
-        } else if let image = input.texture?.c7.toImage() {
+        } else if let image = input.texture?.c7.toImage() { // Initial image from texture if available
             self.source = Published_Source(image)
-            self.setup(input: input)
         } else {
-            self.source = Published_Source(C7Image())
+            self.source = Published_Source(C7Image()) // Default empty image
         }
     }
     
-    func setup(input: HarbethViewInput) {
+    private func setup(input: HarbethViewInput) async {
         guard !input.filters.isEmpty, let texture = input.texture else {
+            // If no filters or no texture, ensure placeholder is shown or handle appropriately.
+            // This might involve setting source.source to input.placeholder if it wasn't already.
+            if let placeholder = input.placeholder, self.source.source != placeholder {
+                await MainActor.run { self.source.source = placeholder }
+            }
             return
         }
+
         let dest = HarbethIO(element: texture, filters: input.filters)
+
+        // The `asynchronousProcessing` flag's meaning might need to be re-evaluated.
+        // Since `dest.output()` is always async now, both paths will behave similarly
+        // in terms of awaiting the processing. The flag might influence other logic
+        // not present here, or could be deprecated if it no longer serves a distinct purpose.
         if input.asynchronousProcessing {
-            dest.transmitOutput(success: { source in
-                if let image = source.c7.toImage() {
-                    DispatchQueue.main.async {
+            do {
+                let resultTexture = try await dest.output()
+                if let image = resultTexture.c7.toImage() {
+                    await MainActor.run {
                         self.source.source = image
                     }
                 }
-            })
-        } else if let image = try? dest.output().c7.toImage() {
-            self.source.source = image
+            } catch {
+                print("HarbethView: Error in async processing path - \(error)")
+                // Optionally, revert to placeholder on error
+                if let placeholder = input.placeholder {
+                    await MainActor.run { self.source.source = placeholder }
+                }
+            }
+        } else { // This is the old "synchronous" path, now also async
+            do {
+                let resultTexture = try await dest.output()
+                if let image = resultTexture.c7.toImage() {
+                    // self.source is @ObservedObject, its properties should be updated on MainActor
+                    await MainActor.run {
+                        self.source.source = image
+                    }
+                }
+            } catch {
+                print("HarbethView: Error in processing path - \(error)")
+                // Optionally, revert to placeholder on error
+                if let placeholder = input.placeholder {
+                    await MainActor.run { self.source.source = placeholder }
+                }
+            }
         }
     }
     
     public var body: some View {
         self.content(disImage)
+            .task {
+                await setup(input: self.harbethInput)
+            }
     }
     
     public var disImage: Image {
