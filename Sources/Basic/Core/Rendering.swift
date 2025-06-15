@@ -6,13 +6,13 @@
 //
 
 import Foundation
-import MetalKit
+@preconcurrency import MetalKit
 
 internal struct Rendering {
     public static let kOneInputVertex: String = "oneInputVertex"
     public static let kTwoInputVertex: String = "twoInputVertex"
     
-    static func makeRenderPipelineState(with vertex: String, fragment: String) async throws -> MTLRenderPipelineState {
+    @MainActor static func makeRenderPipelineState(with vertex: String, fragment: String) async throws -> MTLRenderPipelineState {
         let descriptor = MTLRenderPipelineDescriptor()
         descriptor.colorAttachments[0].pixelFormat = MTLPixelFormat.bgra8Unorm
         descriptor.rasterSampleCount = 1
@@ -25,7 +25,7 @@ internal struct Rendering {
         return pipelineState
     }
     
-    static func drawingProcess(_ pipelineState: MTLRenderPipelineState,
+    @MainActor static func drawingProcess(_ pipelineState: MTLRenderPipelineState,
                                commandBuffer: MTLCommandBuffer,
                                texture: MTLTexture,
                                filter: C7FilterProtocol) async {
