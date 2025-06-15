@@ -17,8 +17,10 @@ public final class RenderImageView: C7ImageView, Renderable {
             if lockedSource {
                 return
             }
-            self.setupInputSource()
-            self.filtering()
+            self.setupInputSource() // Assuming this remains synchronous
+            Task {
+                await self.filtering()
+            }
         }
     }
 }
