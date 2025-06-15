@@ -3,10 +3,11 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		288CCDB22DFE9804006EEB71 /* Harbeth in Frameworks */ = {isa = PBXBuildFile; productRef = 288CCDB12DFE9804006EEB71 /* Harbeth */; };
 		68A25FD72D5DEB5C006FBFC8 /* Skateboarding.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 68A25FD62D5DEB5C006FBFC8 /* Skateboarding.mp4 */; };
 		870B80AC2A80E40200614660 /* CoreImageViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 870B80AB2A80E40200614660 /* CoreImageViews.swift */; };
 		870B80AE2A80E51B00614660 /* MetalKernelViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 870B80AD2A80E51B00614660 /* MetalKernelViews.swift */; };
@@ -34,8 +35,6 @@
 		878444FC2994DDA0001D856B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 878444FA2994DDA0001D856B /* Main.storyboard */; };
 		878444FE2994DDA1001D856B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 878444FD2994DDA1001D856B /* Assets.xcassets */; };
 		878445012994DDA1001D856B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 878444FF2994DDA1001D856B /* LaunchScreen.storyboard */; };
-		878445072994DDC0001D856B /* Harbeth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 878445062994DDC0001D856B /* Harbeth.framework */; };
-		878445082994DDC0001D856B /* Harbeth.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 878445062994DDC0001D856B /* Harbeth.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8784450B2994DE12001D856B /* Color.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8784450A2994DE12001D856B /* Color.xcassets */; };
 		878445102994DE4A001D856B /* HomeViewType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8784450C2994DE4A001D856B /* HomeViewType.swift */; };
 		878445112994DE4A001D856B /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8784450D2994DE4A001D856B /* HomeViewController.swift */; };
@@ -73,17 +72,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				8767F21D29C95D0A00FB5301 /* Harbeth.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		878445092994DDC0001D856B /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				878445082994DDC0001D856B /* Harbeth.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -162,7 +150,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				878445072994DDC0001D856B /* Harbeth.framework in Frameworks */,
+				288CCDB22DFE9804006EEB71 /* Harbeth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -359,7 +347,6 @@
 				878444EE2994DDA0001D856B /* Sources */,
 				878444EF2994DDA0001D856B /* Frameworks */,
 				878444F02994DDA0001D856B /* Resources */,
-				878445092994DDC0001D856B /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -392,7 +379,6 @@
 				};
 			};
 			buildConfigurationList = 872661AD2994D88D00E612C7 /* Build configuration list for PBXProject "Harbeth-Demo" */;
-			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -401,7 +387,9 @@
 			);
 			mainGroup = 872661A92994D88D00E612C7;
 			packageReferences = (
+				288CCDB02DFE97E0006EEB71 /* XCLocalSwiftPackageReference "../../Harbeth-yangKJ" */,
 			);
+			preferredProjectObjectVersion = 77;
 			productRefGroup = 872661B42994D88D00E612C7 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -579,8 +567,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
-				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -637,8 +625,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
-				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -785,7 +773,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 66T6NB6T4J;
+				DEVELOPMENT_TEAM = 7N833V3R43;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Harbeth-iOS-Demo/Resources/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Harbeth;
@@ -795,7 +783,7 @@
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -807,7 +795,7 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -819,7 +807,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 66T6NB6T4J;
+				DEVELOPMENT_TEAM = 7N833V3R43;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Harbeth-iOS-Demo/Resources/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Harbeth;
@@ -829,7 +817,7 @@
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -841,7 +829,7 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -886,6 +874,21 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		288CCDB02DFE97E0006EEB71 /* XCLocalSwiftPackageReference "../../Harbeth-yangKJ" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../../Harbeth-yangKJ";
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		288CCDB12DFE9804006EEB71 /* Harbeth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 288CCDB02DFE97E0006EEB71 /* XCLocalSwiftPackageReference "../../Harbeth-yangKJ" */;
+			productName = Harbeth;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 872661AA2994D88D00E612C7 /* Project object */;
 }
