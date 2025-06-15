@@ -56,11 +56,11 @@ public actor Device: Cacheable {
         }
         self.textureCache = cache
 
-        if #available(iOS 10.0, macOS 10.12, *) {
-            self.defaultLibrary = try? device.makeDefaultLibrary(bundle: Bundle.main)
-        } else {
-            self.defaultLibrary = device.makeDefaultLibrary()
-        }
+        // Since min deployment is iOS 18 & macOS 15, this check is always true.
+        self.defaultLibrary = try? device.makeDefaultLibrary(bundle: Bundle.main)
+        // } else {
+        //     self.defaultLibrary = device.makeDefaultLibrary()
+        // }
         self.harbethLibrary = await Device.makeFrameworkLibrary(device, for: "Harbeth")
         
         if defaultLibrary == nil && harbethLibrary == nil {
@@ -111,17 +111,13 @@ extension Device {
             return library
         }
         
-        // This #available block for makeLibrary(URL:) is now redundant due to newLibrary(URL:) above.
-        // However, keeping it doesn't hurt as newLibrary should be preferred.
-        // If newLibrary failed, this would also likely fail or not be reached.
-        if #available(macOS 10.13, iOS 11.0, *) { // Guard for URL(string:) which is not the primary concern here
-            // URL(string: libraryFileOrPath) might be problematic if libraryFileOrPath is not a valid URL string
-            // but URL(fileURLWithPath:) is safer. The previous newLibrary(URL: fileURL) should cover this.
-            // For safety, let's assume fileURL is the correct one to use if we were to keep this block.
-            if let library = try? device.newLibrary(URL: fileURL) { // Changed to newLibrary for consistency
-                return library
-            }
-        }
+        // This #available block for makeLibrary(URL:) is now redundant due to newLibrary(URL:) above,
+        // and also because min deployment (iOS 18, macOS 15) is far above macOS 10.13 / iOS 11.0.
+        // if #available(macOS 10.13, iOS 11.0, *) {
+        //     if let library = try? device.newLibrary(URL: fileURL) {
+        //         return library
+        //     }
+        // }
         
         return nil
     }
@@ -260,11 +256,12 @@ extension Device {
             // This is the Apple recommendation, see cgImage(using:) above
             CIContextOption.workingFormat: CIFormat.RGBAh,
         ]
-        if #available(iOS 13.0, macOS 10.12, *) {
-            // This option is undocumented, possibly only effective on iOS?
-            // Sounds more like allowLowPerformance, though, so turn it off
-            options[CIContextOption.allowLowPower] = false
-        }
+        // Since min deployment is iOS 18 & macOS 15, this check is always true.
+        // if #available(iOS 13.0, macOS 10.12, *) {
+        // This option is undocumented, possibly only effective on iOS?
+        // Sounds more like allowLowPerformance, though, so turn it off
+        options[CIContextOption.allowLowPower] = false
+        // }
         if let workingColorSpace = await deviceActor.workingColorSpace {
             // We are likely to encounter images with wider colour than sRGB
             options[CIContextOption.workingColorSpace] = workingColorSpace
@@ -274,13 +271,13 @@ extension Device {
         let mtlDevice = await deviceActor.device
         let mtlCommandQueue = await deviceActor.commandQueue
 
-        if #available(iOS 13.0, *, macOS 10.15, *) {
-            context = CIContext(mtlCommandQueue: mtlCommandQueue, options: options)
-        } else if #available(iOS 9.0, *, macOS 10.11, *) {
-            context = CIContext(mtlDevice: mtlDevice, options: options)
-        } else {
-            context = CIContext(options: options)
-        }
+        // Since min deployment is iOS 18 & macOS 15, this is always the path taken.
+        context = CIContext(mtlCommandQueue: mtlCommandQueue, options: options)
+        // } else if #available(iOS 9.0, *, macOS 10.11, *) {
+        //     context = CIContext(mtlDevice: mtlDevice, options: options)
+        // } else {
+        //     context = CIContext(options: options)
+        // }
         await deviceActor.setContext(context, for: colorSpace) // Call the new mutating func
         return context
     }

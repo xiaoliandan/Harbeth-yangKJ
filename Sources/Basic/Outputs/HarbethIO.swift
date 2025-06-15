@@ -253,7 +253,7 @@ extension HarbethIO {
     private func asyncCommit(commandBuffer: MTLCommandBuffer) async throws {
         // Using HarbethError.error(Error) or a specific case if available would be better.
         // For now, rethrowing the original error.
-        enum CommitError: Error { case unknown } // Placeholder, ideally use HarbethError
+        // enum CommitError: Error { case unknown } // Placeholder, ideally use HarbethError
         return try await withCheckedThrowingContinuation { continuation in
             commandBuffer.addCompletedHandler { buffer in
                 if let error = buffer.error {

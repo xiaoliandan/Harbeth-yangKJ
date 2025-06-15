@@ -198,9 +198,9 @@ extension TextureLoader {
         descriptor.storageMode = storageMode
         descriptor.sampleCount = sampleCount
         descriptor.textureType = sampleCount > 1 ? .type2DMultisample : .type2D
-        if #available(iOS 12.0, macOS 10.14, *) {
-            descriptor.allowGPUOptimizedContents = allowGPUOptimizedContents
-        }
+        // Since min deployment is iOS 18 & macOS 15, this check is always true.
+        descriptor.allowGPUOptimizedContents = allowGPUOptimizedContents
+        // }
         guard let texture = (await Device.device()).makeTexture(descriptor: descriptor) else {
             throw HarbethError.makeTexture
         }

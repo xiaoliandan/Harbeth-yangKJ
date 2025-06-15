@@ -28,14 +28,16 @@ extension HarbethWrapper where MTLSize == Base {
         supportsOnly8KValue = !effectiveDevice.supportsFamily(.apple3)
         #elseif os(macOS)
         supportsOnly8KValue = false
-        #else
-        if #available(iOS 13.0, *) {
-            supportsOnly8KValue = !effectiveDevice.supportsFamily(.apple3)
-        } else if #available(iOS 11.0, *)  {
-            supportsOnly8KValue = !effectiveDevice.supportsFeatureSet(.iOS_GPUFamily3_v3)
-        } else {
-            supportsOnly8KValue = false
-        }
+        #else // Assumed to be iOS, tvOS, watchOS path
+        // Since min deployment for iOS is 18, this is the only path taken for iOS.
+        // Assuming .apple3 family check is appropriate for recent tvOS/watchOS as well,
+        // or that their specific device capabilities align.
+        supportsOnly8KValue = !effectiveDevice.supportsFamily(.apple3)
+        // } else if #available(iOS 11.0, *)  {
+        //     supportsOnly8KValue = !effectiveDevice.supportsFeatureSet(.iOS_GPUFamily3_v3)
+        // } else {
+        //     supportsOnly8KValue = false
+        // }
         #endif
         let maxSide: Int = supportsOnly8KValue ? 8192 : 16_384
 

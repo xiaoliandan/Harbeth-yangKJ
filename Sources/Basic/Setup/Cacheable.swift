@@ -25,7 +25,7 @@ public protocol Cacheable: AnyObject {
 // fileprivate let C7ATCacheContext: UInt8 = 0
 // fileprivate let textureCacheKey = UnsafeRawPointer(bitPattern: Int(C7ATCacheContext) + 1)!
 private enum AssociatedKeys {
-    static var textureCache: UInt8 = 0
+    static var textureCache: Void? = nil
 }
 
 extension Cacheable {
