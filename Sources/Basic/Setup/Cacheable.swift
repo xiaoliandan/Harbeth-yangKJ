@@ -19,7 +19,7 @@ public typealias CVMetalTextureCache = AnyClass
 public protocol Cacheable: AnyObject {
     
     /// Asynchronously gets or creates the Metal texture cache.
-    @MainActor func getTextureCache() async -> CVMetalTextureCache?
+    func getTextureCache() async -> CVMetalTextureCache?
     
     /// Release the CVMetalTextureCache resource
     func deferTextureCache()

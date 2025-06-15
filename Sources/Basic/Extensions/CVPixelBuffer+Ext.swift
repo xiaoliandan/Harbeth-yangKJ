@@ -7,7 +7,7 @@
 
 import Foundation
 import CoreVideo
-import MetalKit
+@preconcurrency import MetalKit
 import VideoToolbox
 
 extension CVPixelBuffer: HarbethCompatible { }
@@ -142,13 +142,22 @@ extension HarbethWrapper where Base: CVPixelBuffer {
             texture = nil
         }
         #else
-        let cacheToUse: CVMetalTextureCache?
-        if let providedCache = textureCache {
-            cacheToUse = providedCache
-        } else {
-            cacheToUse = await Device.sharedTextureCache()
+        // let cacheToUse: CVMetalTextureCache?
+        // if let providedCache = textureCache {
+        //     cacheToUse = providedCache
+        // } else {
+        //     cacheToUse = await Device.sharedTextureCache() // This is now commented out
+        // }
+        // texture = base.c7.convert2MTLTexture(textureCache: cacheToUse)
+        let deviceActor = await Shared.shared.getInitializedDevice()
+        do {
+            // The textureCache parameter of toMTLTexture is now effectively unused in this path.
+            // If a specific cache is needed, convert2MTLTexture should be used directly.
+            texture = try await deviceActor.texture(from: self.base, usage: .shaderRead)
+        } catch {
+            print("Harbeth: Error creating texture from CVPixelBuffer via Device actor: \(error)")
+            texture = nil
         }
-        texture = base.c7.convert2MTLTexture(textureCache: cacheToUse)
         #endif
         return texture
     }

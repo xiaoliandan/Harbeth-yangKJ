@@ -157,6 +157,57 @@ extension Device {
         self.contexts[key] = context
     }
 
+    // Add to public actor Device scope
+    public func texture(from pixelBuffer: CVPixelBuffer, usage: MTLTextureUsage = .shaderRead) async throws -> MTLTexture {
+        guard let anUnsafeTextureCache = self.textureCache else {
+            // Define HarbethError.textureCacheIsNil or use a generic error
+            throw NSError(domain: "Harbeth", code: -1, userInfo: [NSLocalizedDescriptionKey: "Texture cache is nil."])
+        }
+
+        let width = CVPixelBufferGetWidth(pixelBuffer)
+        let height = CVPixelBufferGetHeight(pixelBuffer)
+        var cvMetalTextureUnmanaged: CVMetalTexture?
+
+        // Assuming bgra8Unorm for now as a common format from CVPixelBuffers.
+        // This might need to be inferred or passed as a parameter.
+        let mtlPixelFormat: MTLPixelFormat = .bgra8Unorm
+
+        // CVMetalTextureCacheCreateTextureFromImage uses UnsafeMutablePointer<CVMetalTexture?>
+        // So we pass the address of cvMetalTextureUnmanaged
+        let status = CVMetalTextureCacheCreateTextureFromImage(kCFAllocatorDefault,
+                                                              anUnsafeTextureCache, // CVMetalTextureCache (bridged)
+                                                              pixelBuffer,        // CVPixelBuffer (bridged)
+                                                              nil,                // textureAttributes (CFDictionary)
+                                                              mtlPixelFormat,     // MTLPixelFormat
+                                                              width,              // width (Int)
+                                                              height,             // height (Int)
+                                                              0,                  // planeIndex (Int)
+                                                              &cvMetalTextureUnmanaged) // CVMetalTexture?
+
+        guard status == kCVReturnSuccess else {
+            // Define HarbethError.cvMetalTextureCreateFailure or use generic
+            throw NSError(domain: "Harbeth", code: -2, userInfo: [NSLocalizedDescriptionKey: "CVMetalTextureCacheCreateTextureFromImage failed with status \(status)"])
+        }
+
+        guard let cvMetalTexture = cvMetalTextureUnmanaged else {
+            // Define HarbethError.cvMetalTextureNilAfterCreation or use generic
+            throw NSError(domain: "Harbeth", code: -3, userInfo: [NSLocalizedDescriptionKey: "CVMetalTexture is nil after successful creation."])
+        }
+
+        guard let mtlTexture = CVMetalTextureGetTexture(cvMetalTexture) else {
+            // Define HarbethError.mtlTextureExtractionFailed or use generic
+            throw NSError(domain: "Harbeth", code: -4, userInfo: [NSLocalizedDescriptionKey: "Failed to get MTLTexture from CVMetalTexture."])
+        }
+
+        // The `usage` parameter currently isn't directly used to set MTLTexture.usage here,
+        // as usage is generally determined at texture creation from a descriptor or by the cache.
+        // This function primarily focuses on getting a texture from a CVPixelBuffer via the cache.
+        // If specific usage enforcement is needed, it might involve checking mtlTexture.usage
+        // or more complex cache configuration.
+
+        return mtlTexture
+    }
+
     @MainActor public static func device() async -> MTLDevice {
         let dActor = await Shared.shared.getInitializedDevice()
         return await dActor.device
@@ -179,10 +230,11 @@ extension Device {
         return await dActor.commandQueue
     }
     
-    @MainActor public static func sharedTextureCache() async -> CVMetalTextureCache? {
-        let dActor = await Shared.shared.getInitializedDevice()
-        return await dActor.getTextureCache() // Calls the instance method on the actor
-    }
+    // @MainActor public static func sharedTextureCache() async -> CVMetalTextureCache? {
+    //     // FIXME: Deprecated. Use Device actor's texture(from:usage:) method instead.
+    //     let dActor = await Shared.shared.getInitializedDevice()
+    //     return await dActor.getTextureCache()
+    // }
     
     @MainActor public static func context() async -> CIContext {
         return await Device.context(colorSpace: await Device.colorSpace())
