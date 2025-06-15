@@ -132,7 +132,7 @@ extension Device {
 
 extension Device {
     
-    public static func device() async -> MTLDevice {
+    @MainActor public static func device() async -> MTLDevice {
         let d = await Shared.shared.getInitializedDevice()
         return d.device
     }
@@ -149,7 +149,7 @@ extension Device {
         return CGBitmapInfo.byteOrder32Big.rawValue | CGImageAlphaInfo.premultipliedLast.rawValue
     }
     
-    public static func commandQueue() async -> MTLCommandQueue {
+    @MainActor public static func commandQueue() async -> MTLCommandQueue {
         let d = await Shared.shared.getInitializedDevice()
         return d.commandQueue
     }

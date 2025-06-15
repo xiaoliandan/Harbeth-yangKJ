@@ -1,3 +1,4 @@
+@preconcurrency import Metal
 //
 //  RenderView.swift
 //  Harbeth
@@ -16,7 +17,6 @@ open class RenderView: C7View {
     private var mtkRenderView: MTKView!
 
     private var displayTexture: MTLTexture?
-    private let isRenderingLock = NSLock()
     private var _isRendering: Bool = false
 
     private var screenScale: CGFloat = 1.0
@@ -124,18 +124,13 @@ extension RenderView {
     }
 
     @MainActor private func renderContentAndPrepareDisplay() async {
-        isRenderingLock.lock()
         guard !_isRendering else {
-            isRenderingLock.unlock()
             return
         }
         _isRendering = true
-        isRenderingLock.unlock()
 
         defer {
-            isRenderingLock.lock()
             _isRendering = false
-            isRenderingLock.unlock()
         }
 
         guard let texture = self.inputTexture,
@@ -264,7 +259,7 @@ extension RenderView: MTKViewDelegate {
         guard let drawable = view.currentDrawable,
               let currentDisplayTexture = self.displayTexture, // Use the pre-rendered texture
               let commandBuffer = commandQueue.makeCommandBuffer() else {
-            if var descriptor = view.currentRenderPassDescriptor, // Make descriptor mutable
+            if let descriptor = view.currentRenderPassDescriptor, // Make descriptor mutable
                let currentDrawableToClear = view.currentDrawable, // Use a different name to avoid conflict if currentDrawable is used later
                let cmdBuff = commandQueue.makeCommandBuffer() {
 
