@@ -264,14 +264,22 @@ extension RenderView: MTKViewDelegate {
         guard let drawable = view.currentDrawable,
               let currentDisplayTexture = self.displayTexture, // Use the pre-rendered texture
               let commandBuffer = commandQueue.makeCommandBuffer() else {
-            if let descriptor = view.currentRenderPassDescriptor,
-               let currentDrawable = view.currentDrawable, // Renamed to avoid conflict
-               let cmdBuff = commandQueue.makeCommandBuffer() { // Renamed to avoid conflict
-                let commandEncoder = cmdBuff.makeRenderCommandEncoder(descriptor: descriptor)
-                commandEncoder?.colorAttachments[0].loadAction = .clear
-                commandEncoder?.colorAttachments[0].clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 0) // Clear to transparent or bg color
-                commandEncoder?.endEncoding()
-                cmdBuff.present(currentDrawable)
+            if var descriptor = view.currentRenderPassDescriptor, // Make descriptor mutable
+               let currentDrawableToClear = view.currentDrawable, // Use a different name to avoid conflict if currentDrawable is used later
+               let cmdBuff = commandQueue.makeCommandBuffer() {
+
+                descriptor.colorAttachments[0].loadAction = .clear
+                descriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.0) // Clear to transparent black
+
+                // Create and end the encoder
+                if let commandEncoder = cmdBuff.makeRenderCommandEncoder(descriptor: descriptor) {
+                    commandEncoder.endEncoding()
+                } else {
+                    print("RenderView: Failed to make command encoder for clearing.")
+                    // Potentially commit buffer if needed, though less likely if encoder failed
+                }
+
+                cmdBuff.present(currentDrawableToClear)
                 cmdBuff.commit()
             }
             return
