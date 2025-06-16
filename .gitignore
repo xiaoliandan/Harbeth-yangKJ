@@ -89,18 +89,6 @@ fastlane/test_output
 
 iOSInjectionProject/
 
-# Xcode
-DerivedData/
-.idea/
-xcuserdata/
-*.xcuserstate
-*.xccheckout
-*.xcscmblueprint
-*.xcodeproj/project.xcworkspace/xcuserdata
-*.xcodeproj/xcuserdata
-*.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
-*.xcscheme
-
 # macOS
 .DS_Store
 Icon?
