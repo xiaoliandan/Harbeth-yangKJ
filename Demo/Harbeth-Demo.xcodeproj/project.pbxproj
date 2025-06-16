@@ -3,10 +3,11 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		28BCB4392DFFAE7D00A06794 /* Harbeth in Frameworks */ = {isa = PBXBuildFile; productRef = 28BCB4382DFFAE7D00A06794 /* Harbeth */; };
 		68A25FD72D5DEB5C006FBFC8 /* Skateboarding.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 68A25FD62D5DEB5C006FBFC8 /* Skateboarding.mp4 */; };
 		870B80AC2A80E40200614660 /* CoreImageViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 870B80AB2A80E40200614660 /* CoreImageViews.swift */; };
 		870B80AE2A80E51B00614660 /* MetalKernelViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 870B80AD2A80E51B00614660 /* MetalKernelViews.swift */; };
@@ -34,8 +35,6 @@
 		878444FC2994DDA0001D856B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 878444FA2994DDA0001D856B /* Main.storyboard */; };
 		878444FE2994DDA1001D856B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 878444FD2994DDA1001D856B /* Assets.xcassets */; };
 		878445012994DDA1001D856B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 878444FF2994DDA1001D856B /* LaunchScreen.storyboard */; };
-		878445072994DDC0001D856B /* Harbeth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 878445062994DDC0001D856B /* Harbeth.framework */; };
-		878445082994DDC0001D856B /* Harbeth.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 878445062994DDC0001D856B /* Harbeth.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8784450B2994DE12001D856B /* Color.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8784450A2994DE12001D856B /* Color.xcassets */; };
 		878445102994DE4A001D856B /* HomeViewType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8784450C2994DE4A001D856B /* HomeViewType.swift */; };
 		878445112994DE4A001D856B /* HomeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8784450D2994DE4A001D856B /* HomeViewController.swift */; };
@@ -73,17 +72,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				8767F21D29C95D0A00FB5301 /* Harbeth.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		878445092994DDC0001D856B /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				878445082994DDC0001D856B /* Harbeth.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -162,7 +150,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				878445072994DDC0001D856B /* Harbeth.framework in Frameworks */,
+				28BCB4392DFFAE7D00A06794 /* Harbeth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -359,7 +347,6 @@
 				878444EE2994DDA0001D856B /* Sources */,
 				878444EF2994DDA0001D856B /* Frameworks */,
 				878444F02994DDA0001D856B /* Resources */,
-				878445092994DDC0001D856B /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -378,7 +365,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1420;
-				LastUpgradeCheck = 1410;
+				LastUpgradeCheck = 1610;
 				TargetAttributes = {
 					872661C02994D8CE00E612C7 = {
 						CreatedOnToolsVersion = 14.1;
@@ -401,6 +388,7 @@
 			);
 			mainGroup = 872661A92994D88D00E612C7;
 			packageReferences = (
+				28BCB4372DFFAE7600A06794 /* XCLocalSwiftPackageReference "../../Harbeth-yangKJ-2" */,
 			);
 			productRefGroup = 872661B42994D88D00E612C7 /* Products */;
 			projectDirPath = "";
@@ -565,6 +553,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -629,6 +618,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -660,6 +650,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 66T6NB6T4J;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -690,6 +681,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 66T6NB6T4J;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -785,7 +777,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 66T6NB6T4J;
+				DEVELOPMENT_TEAM = 7N833V3R43;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Harbeth-iOS-Demo/Resources/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Harbeth;
@@ -819,7 +811,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 66T6NB6T4J;
+				DEVELOPMENT_TEAM = 7N833V3R43;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Harbeth-iOS-Demo/Resources/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Harbeth;
@@ -886,6 +878,21 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		28BCB4372DFFAE7600A06794 /* XCLocalSwiftPackageReference "../../Harbeth-yangKJ-2" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../../Harbeth-yangKJ-2";
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		28BCB4382DFFAE7D00A06794 /* Harbeth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 28BCB4372DFFAE7600A06794 /* XCLocalSwiftPackageReference "../../Harbeth-yangKJ-2" */;
+			productName = Harbeth;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 872661AA2994D88D00E612C7 /* Project object */;
 }
