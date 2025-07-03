@@ -1,4 +1,4 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.8
 //
 //  Harbeth
 //
@@ -27,10 +27,10 @@ import PackageDescription
 let package = Package(
     name: "Harbeth",
     platforms: [
-        .iOS(.v10),
-        .macOS(.v10_13),
-        .tvOS(.v12),
-        .watchOS(.v5)
+        .iOS(.v16),
+        .macOS(.v13),
+        .tvOS(.v16),
+        .watchOS(.v9)
     ],
     products: [
         .library(name: "Harbeth", targets: ["Harbeth"]),

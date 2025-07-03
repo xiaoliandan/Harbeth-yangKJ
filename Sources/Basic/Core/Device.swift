@@ -42,11 +42,7 @@ public final class Device: Cacheable {
         }
         self.commandQueue = queue
         
-        if #available(iOS 10.0, macOS 10.12, *) {
-            self.defaultLibrary = try? device.makeDefaultLibrary(bundle: Bundle.main)
-        } else {
-            self.defaultLibrary = device.makeDefaultLibrary()
-        }
+        self.defaultLibrary = try? device.makeDefaultLibrary(bundle: Bundle.main)
         self.harbethLibrary = Device.makeFrameworkLibrary(device, for: "Harbeth")
         
         if defaultLibrary == nil && harbethLibrary == nil {
@@ -69,14 +65,11 @@ extension Device {
             return library
         }
         if let pathURL = Bundle.module.url(forResource: "default", withExtension: "metallib") {
-            var path: String
-            if #available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *) {
-                path = pathURL.path()
-            } else {
-                path = pathURL.path
-            }
-            if let library = try? device.makeLibrary(filepath: path) {
+            do {
+                let library = try device.makeLibrary(URL: pathURL)
                 return library
+            } catch {
+                HarbethError.failed("Failed to load library: \(error)")
             }
         }
         #endif
@@ -93,15 +86,12 @@ extension Device {
             return nil
         }
         
-        /// Compatible with the Bundle address used by CocoaPods to import framework.
-        if let library = try? device.makeLibrary(filepath: libraryFile) {
+        do {
+            /// Compatible with the Bundle address used by CocoaPods to import framework.
+            let library = try device.makeLibrary(URL: URL(fileURLWithPath: libraryFile))
             return library
-        }
-        
-        if #available(macOS 10.13, iOS 11.0, *) {
-            if let url = URL(string: libraryFile), let library = try? device.makeLibrary(URL: url) {
-                return library
-            }
+        } catch {
+            HarbethError.failed("Failed to load library: \(error)")
         }
         
         return nil
@@ -164,34 +154,32 @@ extension Device {
             return context
         }
         var options: [CIContextOption : Any] = [
-            CIContextOption.outputColorSpace: colorSpace,
+            .outputColorSpace: colorSpace,
             // Caching does provide a minor speed boost without ballooning memory use, so let's have it on
-            CIContextOption.cacheIntermediates: true,
+            .cacheIntermediates: true,
             // Low GPU priority would make sense for a background operation that isn't performance-critical,
             // but we are interested in disk-to-display performance
-            CIContextOption.priorityRequestLow: false,
+            .priorityRequestLow: false,
             // Definitely no CPU rendering, please
-            CIContextOption.useSoftwareRenderer: false,
+            .useSoftwareRenderer: false,
             // This is the Apple recommendation, see cgImage(using:) above
-            CIContextOption.workingFormat: CIFormat.RGBAh,
+            .workingFormat: CIFormat.RGBAh,
         ]
-        if #available(iOS 13.0, macOS 10.12, *) {
-            // This option is undocumented, possibly only effective on iOS?
-            // Sounds more like allowLowPerformance, though, so turn it off
-            options[CIContextOption.allowLowPower] = false
-        }
+        // This option is undocumented, possibly only effective on iOS?
+        // Sounds more like allowLowPerformance, though, so turn it off
+        options[CIContextOption.allowLowPower] = false
         if let workingColorSpace = Shared.shared.device?.workingColorSpace {
             // We are likely to encounter images with wider colour than sRGB
-            options[CIContextOption.workingColorSpace] = workingColorSpace
+            options[.workingColorSpace] = workingColorSpace
         }
+        
         let context: CIContext
-        if #available(iOS 13.0, *, macOS 10.15, *) {
+        if #available(macOS 10.15, *) {
             context = CIContext(mtlCommandQueue: Device.commandQueue(), options: options)
-        } else if #available(iOS 9.0, *, macOS 10.11, *) {
-            context = CIContext(mtlDevice: Device.device(), options: options)
         } else {
             context = CIContext(options: options)
         }
+        
         Shared.shared.device?.contexts[colorSpace] = context
         return context
     }

@@ -9,6 +9,7 @@ import Foundation
 import MetalKit
 import CoreImage
 import CoreVideo
+import CoreServices
 #if !os(macOS)
 import MobileCoreServices
 #endif
@@ -104,14 +105,16 @@ extension HarbethWrapper where Base: C7Image {
             return true
         }
         #else
-        UIGraphicsBeginImageContextWithOptions(base.size, false, base.scale)
-        color.setFill()
-        let bounds = CGRect.init(origin: .zero, size: base.size)
-        UIRectFill(bounds)
-        base.draw(in: bounds, blendMode: CGBlendMode.destinationIn, alpha: 1.0)
-        let tintedImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return tintedImage ?? base
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = base.scale
+        let renderer = UIGraphicsImageRenderer(size: base.size, format: format)
+        let tintedImage = renderer.image { context in
+            color.setFill()
+            let bounds = CGRect(origin: .zero, size: base.size)
+            context.fill(bounds)
+            base.draw(in: bounds, blendMode: .destinationIn, alpha: 1.0)
+        }
+        return tintedImage
         #endif
     }
     
@@ -127,7 +130,7 @@ extension HarbethWrapper where Base: C7Image {
             kCGImagePropertyHasAlpha: true
         ]
         let data = NSMutableData()
-        guard let imageDestination = CGImageDestinationCreateWithData(data as CFMutableData, kUTTypeTIFF, 1, nil) else {
+        guard let imageDestination = CGImageDestinationCreateWithData(data as CFMutableData, UTType.tiff.identifier as CFString, 1, nil) else {
             return nil
         }
         CGImageDestinationAddImage(imageDestination, cgImage, options)
@@ -328,19 +331,13 @@ extension HarbethWrapper where Base: C7Image {
         return img
         #else
         let radians = CGFloat(degrees) / 180.0 * .pi
-        let tran = CGAffineTransform(rotationAngle: radians)
-        var size = CGRect(origin: .zero, size: base.size).applying(tran).size
-        size.width  = floor(size.width)
-        size.height = floor(size.height)
-        let rect = CGRect(x: -base.size.width/2, y: -base.size.height/2, width: base.size.width, height: base.size.height)
-        UIGraphicsBeginImageContext(size)
-        let context = UIGraphicsGetCurrentContext()
-        context?.translateBy(x: size.width/2, y: size.height/2)
-        context?.rotate(by: radians)
-        base.draw(in: rect)
-        let result = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return result ?? base
+        let rotatedSize = CGRect(origin: .zero, size: base.size).applying(CGAffineTransform(rotationAngle: radians)).size
+        let renderer = UIGraphicsImageRenderer(size: rotatedSize)
+        return renderer.image { context in
+            context.cgContext.translateBy(x: rotatedSize.width / 2, y: rotatedSize.height / 2)
+            context.cgContext.rotate(by: radians)
+            base.draw(in: CGRect(x: -base.size.width / 2, y: -base.size.height / 2, width: base.size.width, height: base.size.height))
+        }
         #endif
     }
     

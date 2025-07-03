@@ -16,23 +16,7 @@ extension HarbethWrapper where MTLSize == Base {
     /// - Parameter device: Device information to create other objects.
     /// - Returns: New metal texture size.
     public func maxTextureSize(device: MTLDevice? = nil) -> MTLSize {
-        func supportsOnly8K() -> Bool {
-            let device = device ?? Device.device()
-            #if targetEnvironment(macCatalyst)
-            return !device.supportsFamily(.apple3)
-            #elseif os(macOS)
-            return false
-            #else
-            if #available(iOS 13.0, *) {
-                return !device.supportsFamily(.apple3)
-            } else if #available(iOS 11.0, *)  {
-                return !device.supportsFeatureSet(.iOS_GPUFamily3_v3)
-            } else {
-                return false
-            }
-            #endif
-        }
-        let maxSide: Int = supportsOnly8K() ? 8192 : 16_384
+        let maxSide: Int = 16_384
         guard base.width > 0, base.height > 0 else {
             return .init(width: 0, height: 0, depth: 0)
         }

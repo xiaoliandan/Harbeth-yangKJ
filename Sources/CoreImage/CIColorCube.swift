@@ -54,13 +54,16 @@ extension CIColorCube.Resource {
         let paths = ["cube", "CUBE"].compactMap {
             bundle.path(forResource: name, ofType: $0)
         }
-        guard let path = paths.first,
-              let contents = try? String(contentsOfFile: path),
+        guard let path = paths.first else {
+            return nil
+        }
+        guard let data = try? Data(contentsOf: URL(fileURLWithPath: path)),
+              let contents = String(data: data, encoding: .utf8),
               let dimension = takeDimension(from: contents, pattern: LUT_3D) else {
             return nil
         }
-        let data = cubeData(with: contents)
-        return CIColorCube.Resource.init(dimension: dimension, data: data)
+        let cube = cubeData(with: contents)
+        return CIColorCube.Resource.init(dimension: dimension, data: cube)
     }
     
     /// Should be a line like `LUT_3D_SIZE 32`, get the `32`.

@@ -34,6 +34,7 @@ struct ErrorView: View {
 }
 
 @available(iOS 15.0, *)
+@MainActor
 class RefreshActionPerformer: ObservableObject {
     @Published private(set) var isPerforming = false
     

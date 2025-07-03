@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		283C7BBA2E15693800EBA886 /* Harbeth in Frameworks */ = {isa = PBXBuildFile; productRef = 283C7BB92E15693800EBA886 /* Harbeth */; };
 		28BCB4392DFFAE7D00A06794 /* Harbeth in Frameworks */ = {isa = PBXBuildFile; productRef = 28BCB4382DFFAE7D00A06794 /* Harbeth */; };
 		68A25FD72D5DEB5C006FBFC8 /* Skateboarding.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 68A25FD62D5DEB5C006FBFC8 /* Skateboarding.mp4 */; };
 		870B80AC2A80E40200614660 /* CoreImageViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 870B80AB2A80E40200614660 /* CoreImageViews.swift */; };
@@ -26,8 +27,6 @@
 		8767F21229C95CE600FB5301 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8767F21129C95CE600FB5301 /* ContentView.swift */; };
 		8767F21429C95CE700FB5301 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8767F21329C95CE700FB5301 /* Assets.xcassets */; };
 		8767F21729C95CE700FB5301 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8767F21629C95CE700FB5301 /* Preview Assets.xcassets */; };
-		8767F21C29C95D0A00FB5301 /* Harbeth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8767F21B29C95D0A00FB5301 /* Harbeth.framework */; };
-		8767F21D29C95D0A00FB5301 /* Harbeth.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 8767F21B29C95D0A00FB5301 /* Harbeth.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8769918C2A7CEBDC00551BD3 /* CustomViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8769918B2A7CEBDC00551BD3 /* CustomViews.swift */; };
 		8769CE222A79F4ED004AB055 /* SwiftUIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8769CE212A79F4ED004AB055 /* SwiftUIView.swift */; };
 		878444F52994DDA0001D856B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 878444F42994DDA0001D856B /* AppDelegate.swift */; };
@@ -61,17 +60,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				872661DF2994DA4700E612C7 /* Harbeth.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		8767F21E29C95D0A00FB5301 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				8767F21D29C95D0A00FB5301 /* Harbeth.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -142,7 +130,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8767F21C29C95D0A00FB5301 /* Harbeth.framework in Frameworks */,
+				283C7BBA2E15693800EBA886 /* Harbeth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -327,7 +315,6 @@
 				8767F20929C95CE600FB5301 /* Sources */,
 				8767F20A29C95CE600FB5301 /* Frameworks */,
 				8767F20B29C95CE600FB5301 /* Resources */,
-				8767F21E29C95D0A00FB5301 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -335,6 +322,7 @@
 			);
 			name = "Harbeth-SwiftUI-Demo";
 			packageProductDependencies = (
+				283C7BB92E15693800EBA886 /* Harbeth */,
 			);
 			productName = "Harbeth-SwiftUI-Demo";
 			productReference = 8767F20D29C95CE600FB5301 /* Harbeth-SwiftUI-Demo.app */;
@@ -388,7 +376,7 @@
 			);
 			mainGroup = 872661A92994D88D00E612C7;
 			packageReferences = (
-				28BCB4372DFFAE7600A06794 /* XCLocalSwiftPackageReference "../../Harbeth-yangKJ-2" */,
+				283C7BB82E15691600EBA886 /* XCLocalSwiftPackageReference "../../Harbeth-yangKJ-2" */,
 			);
 			productRefGroup = 872661B42994D88D00E612C7 /* Products */;
 			projectDirPath = "";
@@ -568,8 +556,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
-				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -627,8 +615,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
-				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -661,7 +649,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "Apple.Harbeth-macOS-Demo";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -692,7 +680,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "Apple.Harbeth-macOS-Demo";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -711,7 +699,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Harbeth-SwiftUI-Demo/Preview Content\"";
-				DEVELOPMENT_TEAM = 66T6NB6T4J;
+				DEVELOPMENT_TEAM = 7N833V3R43;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -719,11 +707,12 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "Apple.Harbeth-SwiftUI-Demo2";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -731,8 +720,10 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2,3";
+				TVOS_DEPLOYMENT_TARGET = 18.0;
 			};
 			name = Debug;
 		};
@@ -745,7 +736,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Harbeth-SwiftUI-Demo/Preview Content\"";
-				DEVELOPMENT_TEAM = 66T6NB6T4J;
+				DEVELOPMENT_TEAM = 7N833V3R43;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -753,11 +744,12 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "Apple.Harbeth-SwiftUI-Demo2";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -765,8 +757,10 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2,3";
+				TVOS_DEPLOYMENT_TARGET = 18.0;
 			};
 			name = Release;
 		};
@@ -787,7 +781,7 @@
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -821,7 +815,7 @@
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -880,6 +874,10 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
+		283C7BB82E15691600EBA886 /* XCLocalSwiftPackageReference "../../Harbeth-yangKJ-2" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../../Harbeth-yangKJ-2";
+		};
 		28BCB4372DFFAE7600A06794 /* XCLocalSwiftPackageReference "../../Harbeth-yangKJ-2" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "../../Harbeth-yangKJ-2";
@@ -887,6 +885,11 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		283C7BB92E15693800EBA886 /* Harbeth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 283C7BB82E15691600EBA886 /* XCLocalSwiftPackageReference "../../Harbeth-yangKJ-2" */;
+			productName = Harbeth;
+		};
 		28BCB4382DFFAE7D00A06794 /* Harbeth */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 28BCB4372DFFAE7600A06794 /* XCLocalSwiftPackageReference "../../Harbeth-yangKJ-2" */;

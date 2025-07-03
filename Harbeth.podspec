@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'Harbeth'
-  s.version          = '1.2.2'
+  s.version          = '2.0.0'
   s.summary          = 'About image and video add filter for metal.'
   
   # This description is used to generate tags and improve search results.
@@ -22,10 +22,10 @@ Pod::Spec.new do |s|
   s.author           = { 'Condy' => 'yangkj310@gmail.com' }
   s.source           = { :git => 'https://github.com/yangKJ/Harbeth.git', :tag => s.version }
   
-  s.swift_version    = '5.0'
-  s.ios.deployment_target = '10.0'
-  s.macos.deployment_target = '10.13'
-  s.pod_target_xcconfig = { 'SWIFT_VERSION' => '5.0' }
+  s.swift_version    = '5.8'
+  s.ios.deployment_target = '16.0'
+  s.macos.deployment_target = '13.0'
+  s.pod_target_xcconfig = { 'SWIFT_VERSION' => '5.8' }
   
   s.requires_arc = true
   s.static_framework = true
